@@ -1,0 +1,21 @@
+.known {
+    -fx-border-color: green;
+    -fx-border-radius: 4.0;
+    /*-fx-border-width: default;*/
+}
+
+.unknown {
+    -fx-text-fill: white;
+
+    -fx-background-color: green;
+    -fx-background-radius: 4.0;
+    -fx-background-insets: -2;
+}
+
+.ignored {
+
+}
+
+.selected {
+    -fx-text-fill: yellow;
+}

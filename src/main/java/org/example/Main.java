@@ -1,18 +1,19 @@
 package org.example;
 
 import javafx.application.Application;
-import javafx.geometry.Insets;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
 import javafx.stage.Stage;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
+import org.example.model.Model;
+import org.example.model.Page;
+import org.example.model.WordChange;
+import org.example.textprocessor.TextProcessor;
+import org.example.view.WordArea;
 
 import java.io.IOException;
+import java.util.List;
 
 public class Main extends Application {
     public static void main(String[] args) throws IOException {
@@ -27,24 +28,31 @@ public class Main extends Application {
         }*/
     }
 
+    int i = 0;
+    List<Page> pages = new TextProcessor(Model.text).process().toList();
+
     @Override
     public void start(Stage primaryStage) throws Exception {
-
-        FlowPane flowPane = new FlowPane();
-        flowPane.setHgap(5.0);
-        flowPane.setVgap(5.0);
-
-        new Model().words().forEach(w -> {
-            Label l = new Label(w);
-            l.setOnMouseClicked(e -> l.setTextFill(Color.YELLOW));
-            if (w.equals("und")) {
-                l.setBackground(new Background(new BackgroundFill(Color.GREEN, new CornerRadii(4.0), new Insets(-2.0))));
-//                l.setBorder(new Border(new BorderStroke(Color.RED, BorderStrokeStyle.SOLID, new CornerRadii(2.0), BorderStroke.DEFAULT_WIDTHS)));
+        Model model = new Model();
+        WordArea wordArea = new WordArea(model);
+        Button button = new Button("new Page");
+        Label label = new Label();
+        model.subscribe(e -> {
+            switch (e) {
+                case WordChange(var word) -> label.setText(word);
+                default -> {}
             }
-            flowPane.getChildren().add(l);
+        });
+        VBox vBox = new VBox(button, label);
+
+        button.setOnAction(e -> {
+            Page page = pages.get(i);
+            model.setPage(page);
+            i = (i + 1) % pages.size();
         });
 
-        Scene scene = new Scene(flowPane, 640, 480);
+        HBox hbox = new HBox(wordArea, vBox);
+        Scene scene = new Scene(hbox, 640, 480);
         primaryStage.setScene(scene);
         primaryStage.show();
     }

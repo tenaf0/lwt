@@ -13,7 +13,6 @@ repositories {
 
 dependencies {
     implementation("org.jsoup:jsoup:1.16.1")
-//    implementation("org.apache.opennlp:opennlp:2.2.0")
     implementation("org.apache.opennlp:opennlp-tools:2.2.0")
 
     testImplementation(platform("org.junit:junit-bom:5.9.1"))
@@ -22,11 +21,16 @@ dependencies {
 
 application {
     mainClass.set("org.example.Main")
+    applicationDefaultJvmArgs = listOf("--enable-preview")
 }
 
 javafx {
     version = "20"
     modules = listOf("javafx.controls")
+}
+
+tasks.withType<JavaCompile> {
+    options.compilerArgs.add("--enable-preview")
 }
 
 tasks.test {
