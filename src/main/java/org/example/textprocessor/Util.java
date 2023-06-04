@@ -13,8 +13,8 @@ public class Util {
             return;
         }
         try {
-            lemmatizer = new ProcessBuilder("/nix/store/hx2c957wpwa6i3fz0wiwhg72sfgq62k1-python3-3.11.2/bin/python3",
-                    "/home/florian/git/lwt/src/main/python/lemmatize.py", Util.class.getResource("/model/IWNLP.Lemmatizer_20181001.json").getFile())
+            lemmatizer = new ProcessBuilder("python3",
+                    "src/main/python/lemmatize.py", Util.class.getResource("/model/IWNLP.Lemmatizer_20181001.json").getFile())
                     .start();
 
             Thread thread = new Thread(() -> {

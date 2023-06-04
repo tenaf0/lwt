@@ -7,7 +7,7 @@
       openjdk = pkgs.openjdk19.override { enableJavaFX = true; };
     in {
       devShells.x86_64-linux.default = with pkgs; mkShell {
-        buildInputs = [ openjdk ];
+        buildInputs = [ openjdk python3 ];
         };
   };
 }

@@ -1,13 +1,15 @@
 package org.example.view;
 
-import javafx.scene.Group;
+import javafx.geometry.Insets;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.FlowPane;
 import org.example.model.*;
+import org.example.model.event.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class WordArea extends Group {
+public class WordArea extends AnchorPane {
     private Model model;
     private FlowPane flowPane;
 
@@ -19,14 +21,22 @@ public class WordArea extends Group {
 
         getStylesheets().add("style/word-node.css");
 
+        setPadding(new Insets(4));
+
         flowPane = new FlowPane();
+        flowPane.setPadding(new Insets(3.0));
         flowPane.setHgap(5.0);
         flowPane.setVgap(5.0);
+
+        AnchorPane.setTopAnchor(flowPane, 0.0);
+        AnchorPane.setLeftAnchor(flowPane, 0.0);
+        AnchorPane.setRightAnchor(flowPane, 0.0);
+        AnchorPane.setBottomAnchor(flowPane, 0.0);
 
         getChildren().add(flowPane);
     }
 
-    private void onChange(ModelChange change) {
+    private void onChange(ModelEvent change) {
         switch (change) {
             case PageChange(var page) -> onPageChange(page);
             case WordChange(var word) -> {}
@@ -47,8 +57,8 @@ public class WordArea extends Group {
             WordNode label = new WordNode(token.token());
             int finalI = i;
             label.setOnMouseClicked(e -> {
-                if (e.getClickCount() == 2) {
-                    model.addKnownWord(finalI);
+                if (e.isShiftDown()) {
+                    model.selectToken(finalI);
                 } else {
                     model.selectWord(finalI);
                 }

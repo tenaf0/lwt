@@ -1,5 +1,9 @@
 package org.example.model;
 
+import org.example.model.event.*;
+
+import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -10,9 +14,19 @@ public class Model {
     private List<Integer> selectedTokens = new ArrayList<>();
     private Word selectedWord = null;
 
-    private List<Consumer<ModelChange>> changeHandlers = new ArrayList<>();
+    private List<Consumer<ModelEvent>> changeHandlers = new ArrayList<>();
 
-    public void subscribe(Consumer<ModelChange> pageChangeHandler) {
+    private final KnownWordDb knownWordDb;
+
+    public Model() {
+        try {
+            knownWordDb = new KnownWordDb("known_word.db");
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void subscribe(Consumer<ModelEvent> pageChangeHandler) {
         this.changeHandlers.add(pageChangeHandler);
     }
 
@@ -28,7 +42,9 @@ public class Model {
     }
 
     public void selectWord(int i) {
+        deselectAll();
         selectedWord = getWord(i);
+        selectedTokens.addAll(selectedWord.tokens());
         sendEvent(new TokenChange(selectedWord.tokens()));
         sendEvent(new WordChange(selectedWord.asLemma(page.tokenList())));
     }
@@ -41,23 +57,19 @@ public class Model {
     public Word getWord(int i) {
         List<Word> words = page.words().stream().filter(w -> w.tokens().contains(i)).toList();
         if (words.size() > 1) {
-            throw new IllegalStateException("Multiple words containing token " + i + " found " + words);
+            System.err.println("Multiple words containing token " + page.tokenList().get(i) + " found " + words);
         }
 
         if (!words.isEmpty()) {
             return words.get(0);
-//            words.get(0).tokens().forEach(this::selectToken);
         } else {
             return new Word(List.of(i));
-//            selectToken(i);
         }
     }
 
     public enum WordState {
-        KNOWN, UNKNOWN, IGNORED
+        KNOWN, LEARNING, UNKNOWN, IGNORED
     }
-
-    private List<String> knownLemmas = new ArrayList<>(List.of("sein", "sehr", "Idee", "kommen"));
 
     public WordState isKnown(int i) {
         String token = page.tokenList().get(i).token();
@@ -67,36 +79,24 @@ public class Model {
 
         Word word = getWord(i);
 
-        return knownLemmas.contains(word.asLemma(page.tokenList())) ? WordState.KNOWN : WordState.UNKNOWN;
+        return knownWordDb.isKnown(word.asLemma(page.tokenList()));
     }
 
-    public void addKnownWord(int i) {
-        knownLemmas.add(getWord(i).asLemma(page.tokenList()));
+    public void addWord(Model.WordState state) {
+        try {
+            String lemma = selectedWord.asLemma(page.tokenList());
+            DictionaryLookup.DictionaryEntry entry = DictionaryLookup.lookup(lemma);
+            knownWordDb.addWord(entry != null ? entry.lemma() : lemma, state);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         sendEvent(new KnownChange());
     }
 
-    private void sendEvent(ModelChange change) {
+    private void sendEvent(ModelEvent change) {
         System.out.println("-> " + change);
         for (var handler : changeHandlers) {
             handler.accept(change);
         }
     }
-
-    public static String text = """
-            Ein Junge Überlebt
-            Mr. und Mrs. Dursley im Ligusterweg Nummer 4 waren stolz
-            darauf, ganz und gar normal zu sein, sehr stolz sogar. Niemand wäre
-            auf die Idee gekommen, sie könnten sich in eine merkwürdige und
-            geheimnisvolle Geschichte verstricken, denn mit solchem Unsinn
-            wollten sie nichts zu tun haben.
-            Mr. Dursley war Direktor einer Firma namens Grunnings, die
-            Bohrmaschinen herstellte. Er war groß und bullig und hatte fast
-            keinen Hals, dafür aber einen sehr großen Schnurrbart. Mrs.
-            Dursley war dünn und blond und besaß doppelt so viel Hals, wie
-            notwendig gewesen wäre, was allerdings sehr nützlich war, denn
-            so konnte sie den Hals über den Gartenzaun recken und zu den
-            Nachbarn hinüberspähen. Die Dursleys hatten einen kleinen Sohn
-            namens Dudley und in ihren Augen gab es nirgendwo einen
-            prächtigeren Jungen. Ich stehe um 7 auf.
-            """;
 }

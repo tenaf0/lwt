@@ -1,58 +1,49 @@
 package org.example;
 
 import javafx.application.Application;
+import javafx.geometry.Orientation;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.layout.*;
+import javafx.scene.control.SplitPane;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import org.example.model.BookReader;
 import org.example.model.Model;
 import org.example.model.Page;
-import org.example.model.WordChange;
-import org.example.textprocessor.TextProcessor;
+import org.example.view.ControlPanel;
 import org.example.view.WordArea;
 
 import java.io.IOException;
-import java.util.List;
+import java.nio.file.Path;
+import java.util.Iterator;
+import java.util.stream.Stream;
 
 public class Main extends Application {
     public static void main(String[] args) throws IOException {
         launch(args);
-/*
-        Document doc = Jsoup.connect("https://www.dwds.de/wb/Hausarbeit").get();
-        System.out.println(doc.title());
-        Elements newsHeadlines = doc.select("#mp-itn b a");
-        for (Element headline : newsHeadlines) {
-            System.out.printf("%s\n\t%s",
-                    headline.attr("title"), headline.absUrl("href"));
-        }*/
     }
 
-    int i = 0;
-    List<Page> pages = new TextProcessor(Model.text).process().toList();
+    private BookReader bookReader = new BookReader(Path.of("/home/florian/Downloads/HP.txt"));
 
     @Override
     public void start(Stage primaryStage) throws Exception {
         Model model = new Model();
         WordArea wordArea = new WordArea(model);
         Button button = new Button("new Page");
-        Label label = new Label();
-        model.subscribe(e -> {
-            switch (e) {
-                case WordChange(var word) -> label.setText(word);
-                default -> {}
-            }
-        });
-        VBox vBox = new VBox(button, label);
+        ControlPanel controlPanel = new ControlPanel(model);
+
+        VBox vBox = new VBox(button, controlPanel);
+
+        Stream<Page> pageStream = bookReader.pageStream();
+        Iterator<Page> iterator = pageStream.iterator();
 
         button.setOnAction(e -> {
-            Page page = pages.get(i);
-            model.setPage(page);
-            i = (i + 1) % pages.size();
+            model.setPage(iterator.next());
         });
 
-        HBox hbox = new HBox(wordArea, vBox);
-        Scene scene = new Scene(hbox, 640, 480);
+        SplitPane splitPane = new SplitPane(wordArea, vBox);
+        splitPane.setOrientation(Orientation.HORIZONTAL);
+        Scene scene = new Scene(splitPane, 720, 480);
         primaryStage.setScene(scene);
         primaryStage.show();
     }

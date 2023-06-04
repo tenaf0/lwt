@@ -109,7 +109,7 @@ public class TextProcessor {
                 int i = 0;
                 List<TokenLemma> tokens = new ArrayList<>();
                 List<Word> words = new ArrayList<>();
-                while (i < 50 && iterator.hasNext()) {
+                while (i < 200 && iterator.hasNext()) {
                     Sentence s = iterator.next();
                     tokens.addAll(s.tokens);
                     for (var w : s.words) {

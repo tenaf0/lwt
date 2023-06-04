@@ -1,5 +1,5 @@
 import sys
-sys.path.append('/home/florian/git/IWNLP-py')
+sys.path.append('/home/florian/Documents/git/IWNLP-py')
 
 from iwnlp.iwnlp_wrapper import IWNLPWrapper
 
