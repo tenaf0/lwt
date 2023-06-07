@@ -36,7 +36,7 @@ public class KnownWordDb {
     }
 
     public Model.WordState isKnown(String lemma) {
-        try (var st = connection.prepareStatement("SELECT status FROM word WHERE lemma = ?")) {
+        try (var st = connection.prepareStatement("SELECT status FROM word WHERE LOWER(word) = LOWER(?)")) {
             st.setString(1, lemma);
             ResultSet resultSet = st.executeQuery();
 
@@ -50,14 +50,15 @@ public class KnownWordDb {
         }
     }
 
-    public void addWord(String lemma, Model.WordState state) {
-        try (var st = connection.prepareStatement("INSERT INTO word (lemma, status, datetime) VALUES (?, ?, CURRENT_TIMESTAMP)")) {
-            if (isKnown(lemma) != Model.WordState.UNKNOWN) {
-                return;
-            }
-
-            st.setString(1, lemma);
-            st.setString(2, state.toString());
+    public void addWord(CardEntry row, Model.WordState state) {
+        try (var st = connection.prepareStatement("INSERT INTO word (prefix, word, postfix, meaning, note, example_sentence, status, datetime) VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)")) {
+            st.setString(1, row.prefix());
+            st.setString(2, row.word());
+            st.setString(3, row.postfix());
+            st.setString(4, row.meaning());
+            st.setString(5, row.note());
+            st.setString(6, row.exampleSentence());
+            st.setString(7, state.toString());
             st.execute();
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -67,27 +68,20 @@ public class KnownWordDb {
     private void initDB() {
         try (var st = connection.createStatement()) {
             st.execute("""
-                create table main.word
-                (
-                    id       integer not null
-                        constraint word_pk
-                            primary key autoincrement,
-                    lemma    TEXT    not null,
-                    status   TEXT    not null,
-                    datetime int     not null
-                );
-                """);
-            st.execute("""
-                create table example_sentences
-                (
-                    id       integer not null
-                        constraint example_sentences_pk
-                            primary key autoincrement,
-                    word_id  integer not null
-                        constraint example_sentences_word_id_fk
-                            references word (id),
-                    sentence TEXT    not null
-                );
+                    create table word (
+                                  id               integer not null
+                                      constraint word_pk
+                                          primary key autoincrement,
+                                  prefix           TEXT,
+                                  word             TEXT    not null,
+                                  postfix          TEXT,
+                                  meaning          TEXT,
+                                  note             TEXT,
+                                  example_sentence TEXT,
+                                  status           TEXT   not null,
+                                  datetime         int    not null,
+                                  UNIQUE(prefix,word,postfix)
+                              );
                 """);
         } catch (SQLException e) {
             throw new RuntimeException(e);

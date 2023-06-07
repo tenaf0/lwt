@@ -1,6 +1,7 @@
 package org.example.view;
 
 import javafx.geometry.Insets;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.FlowPane;
 import org.example.model.*;
@@ -24,22 +25,28 @@ public class WordArea extends AnchorPane {
         setPadding(new Insets(4));
 
         flowPane = new FlowPane();
+        flowPane.prefWrapLengthProperty().bind(widthProperty().subtract(30));
         flowPane.setPadding(new Insets(3.0));
         flowPane.setHgap(5.0);
         flowPane.setVgap(5.0);
 
-        AnchorPane.setTopAnchor(flowPane, 0.0);
-        AnchorPane.setLeftAnchor(flowPane, 0.0);
-        AnchorPane.setRightAnchor(flowPane, 0.0);
-        AnchorPane.setBottomAnchor(flowPane, 0.0);
+        ScrollPane scrollPane = new ScrollPane();
+        scrollPane.setFitToWidth(true);
+        scrollPane.setFitToHeight(true);
+        scrollPane.setContent(flowPane);
 
-        getChildren().add(flowPane);
+        AnchorPane.setTopAnchor(scrollPane, 0.0);
+        AnchorPane.setLeftAnchor(scrollPane, 0.0);
+        AnchorPane.setRightAnchor(scrollPane, 0.0);
+        AnchorPane.setBottomAnchor(scrollPane, 0.0);
+
+        getChildren().add(scrollPane);
     }
 
     private void onChange(ModelEvent change) {
         switch (change) {
             case PageChange(var page) -> onPageChange(page);
-            case WordChange(var word) -> {}
+            case DictionaryChange dc -> {}
             case KnownChange k -> onKnownChange();
             case TokenChange(var tokenList) -> {
                 labels.forEach(WordNode::deselect);
@@ -58,7 +65,7 @@ public class WordArea extends AnchorPane {
             int finalI = i;
             label.setOnMouseClicked(e -> {
                 if (e.isShiftDown()) {
-                    model.selectToken(finalI);
+                    model.toggleToken(finalI);
                 } else {
                     model.selectWord(finalI);
                 }

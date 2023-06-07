@@ -1,12 +1,16 @@
 package org.example.model;
 
+import javafx.application.Platform;
 import org.example.model.event.*;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 public class Model {
 
@@ -24,6 +28,14 @@ public class Model {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+
+        try {
+            Stream<Page> pageStream = bookReader.pageStream();
+            this.iterator = pageStream.iterator();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 
     public void subscribe(Consumer<ModelEvent> pageChangeHandler) {
@@ -36,17 +48,38 @@ public class Model {
         sendEvent(new PageChange(page));
     }
 
-    public void selectToken(int i) {
-        this.selectedTokens.add(i);
+    public void toggleToken(int i) {
+        if (this.selectedTokens.contains(i)) {
+            this.selectedTokens.remove((Integer) i);
+        } else {
+            this.selectedTokens.add(i);
+        }
         sendEvent(new TokenChange(List.copyOf(selectedTokens)));
     }
+
+    private final ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor();
 
     public void selectWord(int i) {
         deselectAll();
         selectedWord = getWord(i);
         selectedTokens.addAll(selectedWord.tokens());
         sendEvent(new TokenChange(selectedWord.tokens()));
-        sendEvent(new WordChange(selectedWord.asLemma(page.tokenList())));
+        lookupWord(selectedWord.asLemma(page.tokenList()));
+    }
+
+    public void lookupWord(String word) {
+        if (word.isEmpty()) {
+            return;
+        }
+
+        executorService.submit(() -> {
+            try {
+                DictionaryLookup.DictionaryEntry entry = DictionaryLookup.lookup(word);
+                Platform.runLater(() -> sendEvent(new DictionaryChange(entry)));
+            } catch (IOException exc) {
+                exc.printStackTrace(System.err);
+            }
+        });
     }
 
     public void deselectAll() {
@@ -82,15 +115,17 @@ public class Model {
         return knownWordDb.isKnown(word.asLemma(page.tokenList()));
     }
 
-    public void addWord(Model.WordState state) {
-        try {
-            String lemma = selectedWord.asLemma(page.tokenList());
-            DictionaryLookup.DictionaryEntry entry = DictionaryLookup.lookup(lemma);
-            knownWordDb.addWord(entry != null ? entry.lemma() : lemma, state);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+    public void addWord(CardEntry cardEntry, Model.WordState state) {
+        knownWordDb.addWord(cardEntry, state);
         sendEvent(new KnownChange());
+    }
+
+    private BookReader bookReader = new BookReader(Path.of("/home/florian/Downloads/HP.txt"));
+
+    private Iterator<Page> iterator;
+
+    public void nextPage() {
+        setPage(iterator.next());
     }
 
     private void sendEvent(ModelEvent change) {

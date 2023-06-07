@@ -11,27 +11,49 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class DictionaryLookup {
-    public record DictionaryEntry(String lemma, String grammatik, List<String> meanings) {}
+    public record DictionaryEntry(boolean found, String lemma, String grammatik, String declensions, List<String> meanings) {}
 
     private static final Map<String, DictionaryEntry> cache = new ConcurrentHashMap<>();
+
+    public enum Dictionary {
+        DWDS,
+        Collins
+    }
+
+    public static String lookupURL(String lemma, Dictionary dictionary) {
+        return (dictionary == Dictionary.DWDS ? "https://www.dwds.de/wb/" : "https://www.collinsdictionary.com/dictionary/german-english/") + germanToURL(lemma);
+    }
 
     public static DictionaryEntry lookup(String lemma) throws IOException {
         if (cache.containsKey(lemma)) {
             return cache.get(lemma);
         }
 
-        Document doc = Jsoup.connect("https://www.dwds.de/wb/" + lemma).get();
+        String url = lookupURL(lemma, Dictionary.Collins);
+        System.out.println("Connecting to " + url);
+        Document doc = Jsoup.connect(url).userAgent("Mozilla").get();
 
         try {
-            String title = doc.selectFirst(".dwdswb-ft-lemmaansatz > b:nth-child(1)").text();
-            Element grammatik = doc.selectFirst("div.dwdswb-ft-block:nth-child(1) > span:nth-child(2)");
-            Elements meanings = doc.select(".bedeutungsuebersicht > ol:nth-child(2) > li");
+            String title = doc.selectFirst("span.orth:nth-child(1)").text();
+            Element grammatik = doc.selectFirst(".pos");
+            Element declensions = doc.selectFirst("span.inflected_forms");
+            Elements meanings = doc.select("div.sense");
 
-            DictionaryEntry entry = new DictionaryEntry(title, grammatik.text(), meanings.eachText());
+            DictionaryEntry entry = new DictionaryEntry(true, title, grammatik.text(), declensions != null ? declensions.text() : null, meanings.eachText());
             cache.put(lemma, entry);
             return entry;
         } catch (Exception e) {
-            return null;
+            e.printStackTrace(System.err);
+            return new DictionaryEntry(false, lemma, null, null, null);
         }
+    }
+
+    private static String germanToURL(String german) {
+        return german
+                .toLowerCase()
+                .replace('ä', 'a')
+                .replace('ö', 'o')
+                .replace('ü', 'u')
+                .replace("ß", "ss");
     }
 }
