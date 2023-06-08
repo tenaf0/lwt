@@ -13,6 +13,8 @@ repositories {
 }
 
 dependencies {
+    implementation("org.jetbrains:annotations:24.0.0")
+
     implementation("org.xerial:sqlite-jdbc:3.42.0.0")
     implementation("org.jsoup:jsoup:1.16.1")
     implementation("org.apache.opennlp:opennlp-tools:2.2.0")

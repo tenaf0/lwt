@@ -9,7 +9,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import org.example.model.CardEntry;
 import org.example.model.DictionaryLookup;
-import org.example.model.Model;
+import org.example.model.Model2;
 import org.example.model.event.DictionaryChange;
 import org.example.model.event.KnownChange;
 import org.example.model.event.PageChange;
@@ -20,9 +20,9 @@ import java.util.regex.Pattern;
 
 public class EditCardBox {
 
-    private final Model model;
+    private final Model2 model;
 
-    public EditCardBox(Model model) {
+    public EditCardBox(Model2 model) {
         this.model = model;
     }
 

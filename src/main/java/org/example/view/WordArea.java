@@ -11,12 +11,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class WordArea extends AnchorPane {
-    private Model model;
+    private Model2 model;
     private FlowPane flowPane;
 
     private List<WordNode> labels = new ArrayList<>();
 
-    public WordArea(Model model) {
+    public WordArea(Model2 model) {
         this.model = model;
         model.subscribe(this::onChange);
 
@@ -61,7 +61,7 @@ public class WordArea extends AnchorPane {
         for (int i = 0; i < page.tokenList().size(); i++) {
             var token = page.tokenList().get(i);
 
-            WordNode label = new WordNode(token.token());
+            /*WordNode label = new WordNode(token.token());
             int finalI = i;
             label.setOnMouseClicked(e -> {
                 if (e.isShiftDown()) {
@@ -71,7 +71,7 @@ public class WordArea extends AnchorPane {
                 }
             });
             this.flowPane.getChildren().add(label);
-            labels.add(label);
+            labels.add(label);*/
         }
 
         onKnownChange();
@@ -80,7 +80,7 @@ public class WordArea extends AnchorPane {
     private void onKnownChange() {
         for (int i = 0; i < labels.size(); i++) {
             var label = labels.get(i);
-            label.setState(model.isKnown(i));
+//            label.setState(model.isKnown(i));
         }
     }
 }

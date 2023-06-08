@@ -7,6 +7,7 @@ import opennlp.tools.sentdetect.SentenceModel;
 import opennlp.tools.tokenize.TokenizerME;
 import opennlp.tools.tokenize.TokenizerModel;
 import org.example.model.Page;
+import org.example.model.TokenLemma;
 import org.example.model.Word;
 
 import java.io.IOException;
@@ -27,15 +28,15 @@ public class TextProcessor {
     }
 
     public Stream<Page> process() {
-        return pagify(reattach(posTag(tokens(sentences(text)))));
+        return pagify(reattach(posTag(tokens(Arrays.stream(sentences(text))))));
     }
 
-    public static Stream<String> sentences(String text) {
+    public static String[] sentences(String text) {
         try (InputStream modelIn = TextProcessor.class.getResourceAsStream("/model/opennlp-de-sentence.bin")) {
             SentenceModel model = new SentenceModel(modelIn);
             SentenceDetectorME detector = new SentenceDetectorME(model);
 
-            return Arrays.stream(detector.sentDetect(text));
+            return detector.sentDetect(text);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -71,7 +72,6 @@ public class TextProcessor {
         }
     }
 
-    public record TokenLemma(String token, String lemma) {}
     public record Sentence(List<TokenLemma> tokens, List<Word> words) {}
     public static Stream<Sentence> reattach(Stream<List<POSToken>> taggedTokens) {
         return taggedTokens.map(s -> {

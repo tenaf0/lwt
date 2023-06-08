@@ -3,7 +3,7 @@ package org.example.view;
 import javafx.fxml.FXML;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
-import org.example.model.Model;
+import org.example.model.Model2;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -11,10 +11,10 @@ import java.util.function.Supplier;
 
 public class GUI extends Pane {
 
-    private final Model model;
+    private final Model2 model;
     private final Supplier<Path> pathSupplier;
 
-    public GUI(Model model, Supplier<Path> pathSupplier) {
+    public GUI(Model2 model, Supplier<Path> pathSupplier) {
         this.model = model;
         this.pathSupplier = pathSupplier;
     }
@@ -35,7 +35,7 @@ public class GUI extends Pane {
 
     @FXML
     public void nextPage() {
-        model.nextPage();
+
     }
 
     @FXML
@@ -45,10 +45,10 @@ public class GUI extends Pane {
 
     @FXML
     public void onExport() {
-        try {
+        /*try {
             model.exportRows(pathSupplier.get());
         } catch (IOException e) {
             throw new RuntimeException(e);
-        }
+        }*/
     }
 }

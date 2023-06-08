@@ -12,7 +12,7 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 import org.example.model.CardEntry;
 import org.example.model.DictionaryLookup;
-import org.example.model.Model;
+import org.example.model.Model2;
 import org.example.model.event.DictionaryChange;
 import org.example.model.event.KnownChange;
 import org.example.model.event.PageChange;
@@ -20,10 +20,10 @@ import org.example.model.event.TokenChange;
 import org.example.model.util.Debouncer;
 
 public class DictionaryPane extends AnchorPane {
-    private final Model model;
+    private final Model2 model;
     private final HostServices hostServices;
 
-    public DictionaryPane(Model model, HostServices hostServices) {
+    public DictionaryPane(Model2 model, HostServices hostServices) {
         this.model = model;
         this.hostServices = hostServices;
 
@@ -86,27 +86,27 @@ public class DictionaryPane extends AnchorPane {
 
     @FXML
     public void onSearch() {
-        debouncer.debounce(() -> model.lookupWord(searchField.getText()), 500);
+        debouncer.debounce(() -> model.selectWord(searchField.getText()), 500);
     }
 
     @FXML
     public void ignoreAction() {
         CardEntry cardEntry = editCardBoxController.collectCardEntryInfos().wordOnly();
         System.out.println(cardEntry);
-        model.addWord(cardEntry, Model.WordState.IGNORED);
+//        model.addWord(cardEntry, Model.WordState.IGNORED);
     }
 
     @FXML
     public void learningAction() {
         CardEntry cardEntry = editCardBoxController.collectCardEntryInfos();
         System.out.println(cardEntry);
-        model.addWord(cardEntry, Model.WordState.LEARNING);
+//        model.addWord(cardEntry, Model.WordState.LEARNING);
     }
 
     @FXML
     public void knownAction() {
         CardEntry cardEntry = editCardBoxController.collectCardEntryInfos().wordOnly();
         System.out.println(cardEntry);
-        model.addWord(cardEntry, Model.WordState.KNOWN);
+//        model.addWord(cardEntry, Model.WordState.KNOWN);
     }
 }

@@ -6,7 +6,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-import org.example.model.Model;
+import org.example.model.Model2;
 import org.example.view.DictionaryPane;
 import org.example.view.EditCardBox;
 import org.example.view.GUI;
@@ -15,7 +15,7 @@ import java.io.File;
 import java.io.IOException;
 
 public class Main extends Application {
-    private final Model model = new Model();
+    private final Model2 model = new Model2();
 
     public static void main(String[] args) throws IOException {
         launch(args);
@@ -45,6 +45,6 @@ public class Main extends Application {
 
     @Override
     public void stop() throws Exception {
-        model.close();
+//        model.close();
     }
 }
