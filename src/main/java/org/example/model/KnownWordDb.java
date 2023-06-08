@@ -1,5 +1,7 @@
 package org.example.model;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.lang.ref.Cleaner;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -7,18 +9,17 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
-public class KnownWordDb {
+public class KnownWordDb implements Closeable {
     private static final Cleaner cleaner = Cleaner.create();
 
     private final Connection connection;
     private final Cleaner.Cleanable cleanable;
 
     public KnownWordDb(String path) throws SQLException {
-        boolean needInit = false;
-        if (!Files.exists(Path.of(path))) {
-            needInit = true;
-        }
+        boolean needInit = !Files.exists(Path.of(path));
         connection = DriverManager.getConnection("jdbc:sqlite:" + path);
 
         if (needInit) {
@@ -65,6 +66,28 @@ public class KnownWordDb {
         }
     }
 
+    public List<CardEntry> fetchLearningWords() {
+        try (var st = connection.prepareStatement("SELECT prefix, word, postfix, meaning, note, example_sentence, datetime FROM word WHERE status = 'LEARNING'")) {
+            ResultSet rs = st.executeQuery();
+
+            List<CardEntry> result = new ArrayList<>();
+            while (rs.next()) {
+                result.add(new CardEntry(
+                        rs.getString(1),
+                        rs.getString(2),
+                        rs.getString(3),
+                        rs.getString(4),
+                        rs.getString(5),
+                        rs.getString(6)
+                ));
+            }
+
+            return result;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private void initDB() {
         try (var st = connection.createStatement()) {
             st.execute("""
@@ -86,5 +109,10 @@ public class KnownWordDb {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public void close() throws IOException {
+        cleanable.clean();
     }
 }

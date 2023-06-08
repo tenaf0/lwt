@@ -83,6 +83,9 @@ public class TextProcessor {
                 tokens.add(taggedToken.token);
                 if (taggedToken.pos.equals("PTKVZ")) {
                     for (int j = i - 1; j >= 0; j--) {
+                        if (s.get(j).token.equals(",")) {
+                            break;
+                        }
                         if (s.get(j).pos.equals("VVFIN") || s.get(j).pos.equals("VVIMP")) {
                             words.add(new Word(List.of(i, j)));
                         }

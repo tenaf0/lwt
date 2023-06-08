@@ -128,6 +128,18 @@ public class Model {
         setPage(iterator.next());
     }
 
+    public void exportRows(Path path) throws IOException {
+        AnkiExport.export(knownWordDb.fetchLearningWords(), path);
+    }
+
+    public void close() {
+        try {
+            knownWordDb.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private void sendEvent(ModelEvent change) {
         System.out.println("-> " + change);
         for (var handler : changeHandlers) {

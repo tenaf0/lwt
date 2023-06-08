@@ -17,6 +17,8 @@ dependencies {
     implementation("org.jsoup:jsoup:1.16.1")
     implementation("org.apache.opennlp:opennlp-tools:2.2.0")
 
+    implementation("com.opencsv:opencsv:5.7.1")
+
 //    implementation("io.github.mkpaz:atlantafx-base:2.0.0")
 
     testImplementation(platform("org.junit:junit-bom:5.9.1"))

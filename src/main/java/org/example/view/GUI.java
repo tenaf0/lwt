@@ -5,12 +5,18 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import org.example.model.Model;
 
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.function.Supplier;
+
 public class GUI extends Pane {
 
     private final Model model;
+    private final Supplier<Path> pathSupplier;
 
-    public GUI(Model model) {
+    public GUI(Model model, Supplier<Path> pathSupplier) {
         this.model = model;
+        this.pathSupplier = pathSupplier;
     }
 
     @FXML
@@ -35,5 +41,14 @@ public class GUI extends Pane {
     @FXML
     public void prevPage() {
 
+    }
+
+    @FXML
+    public void onExport() {
+        try {
+            model.exportRows(pathSupplier.get());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
