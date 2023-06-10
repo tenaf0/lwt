@@ -8,21 +8,18 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import org.example.model.CardEntry;
-import org.example.model.DictionaryLookup;
-import org.example.model.Model2;
-import org.example.model.event.DictionaryChange;
-import org.example.model.event.KnownChange;
-import org.example.model.event.PageChange;
-import org.example.model.event.TokenChange;
+import org.example.model.Model;
+import org.example.model.SelectedWord;
+import org.example.model.event.SelectedWordChange;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class EditCardBox {
 
-    private final Model2 model;
+    private final Model model;
 
-    public EditCardBox(Model2 model) {
+    public EditCardBox(Model model) {
         this.model = model;
     }
 
@@ -54,22 +51,17 @@ public class EditCardBox {
     public void initialize() {
         model.subscribe(e -> {
             switch (e) {
-                case PageChange pageChange -> {
-                }
-                case TokenChange tokenChange -> {
-                }
-                case KnownChange knownChange -> {
-                }
-                case DictionaryChange(DictionaryLookup.DictionaryEntry entry)  -> {
+                case SelectedWordChange(SelectedWord selectedWord) -> {
                     reset();
 
-                    wordField.setText(entry.lemma());
+                    wordField.setText(selectedWord.lemma());
 
-                    if (entry.grammatik() == null)
+                    if (selectedWord.dictionaryEntry() == null || selectedWord.dictionaryEntry().grammatik() == null)
                         return;
 
+                    var grammatik = selectedWord.dictionaryEntry().grammatik();
                     Pattern regex = Pattern.compile("(masculine|feminine|neuter) noun");
-                    Matcher matcher = regex.matcher(entry.grammatik());
+                    Matcher matcher = regex.matcher(grammatik);
                     if (matcher.matches()) {
                         prefixField.setText(switch (matcher.group(1)) {
                             case "masculine" -> "der";
@@ -79,6 +71,7 @@ public class EditCardBox {
                         });
                     }
                 }
+                default -> {}
             }
         });
     }

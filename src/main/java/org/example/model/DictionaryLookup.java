@@ -1,5 +1,6 @@
 package org.example.model;
 
+import org.jetbrains.annotations.Nullable;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -11,7 +12,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class DictionaryLookup {
-    public record DictionaryEntry(boolean found, String lemma, String grammatik, String declensions, List<String> meanings) {}
+    public record DictionaryEntry(String lemma, String grammatik, String declensions, List<String> meanings) {}
 
     private static final Map<String, DictionaryEntry> cache = new ConcurrentHashMap<>();
 
@@ -24,7 +25,7 @@ public class DictionaryLookup {
         return (dictionary == Dictionary.DWDS ? "https://www.dwds.de/wb/" : "https://www.collinsdictionary.com/dictionary/german-english/") + germanToURL(lemma);
     }
 
-    public static DictionaryEntry lookup(String lemma) throws IOException {
+    public static @Nullable DictionaryEntry lookup(String lemma) throws IOException {
         if (cache.containsKey(lemma)) {
             return cache.get(lemma);
         }
@@ -39,12 +40,12 @@ public class DictionaryLookup {
             Element declensions = doc.selectFirst("span.inflected_forms");
             Elements meanings = doc.select("div.sense");
 
-            DictionaryEntry entry = new DictionaryEntry(true, title, grammatik.text(), declensions != null ? declensions.text() : null, meanings.eachText());
+            DictionaryEntry entry = new DictionaryEntry(title, grammatik.text(), declensions != null ? declensions.text() : null, meanings.eachText());
             cache.put(lemma, entry);
             return entry;
         } catch (Exception e) {
             e.printStackTrace(System.err);
-            return new DictionaryEntry(false, lemma, null, null, null);
+            return null;
         }
     }
 

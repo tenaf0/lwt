@@ -12,38 +12,37 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 import org.example.model.CardEntry;
 import org.example.model.DictionaryLookup;
-import org.example.model.Model2;
-import org.example.model.event.DictionaryChange;
-import org.example.model.event.KnownChange;
-import org.example.model.event.PageChange;
-import org.example.model.event.TokenChange;
+import org.example.model.Model;
+import org.example.model.SelectedWord;
+import org.example.model.event.SelectedWordChange;
 import org.example.model.util.Debouncer;
 
 public class DictionaryPane extends AnchorPane {
-    private final Model2 model;
+    private final Model model;
     private final HostServices hostServices;
 
-    public DictionaryPane(Model2 model, HostServices hostServices) {
+    public DictionaryPane(Model model, HostServices hostServices) {
         this.model = model;
         this.hostServices = hostServices;
 
         model.subscribe(e -> {
             switch (e) {
-                case PageChange pageChange -> {
-                }
-                case TokenChange tokenChange -> {
-                }
-                case KnownChange knownChange -> {
-                }
-                case DictionaryChange(DictionaryLookup.DictionaryEntry entry)  -> {
-                    word.set(entry.lemma());
-                    grammarCategory.set(entry.grammatik());
+                case SelectedWordChange(SelectedWord selectedWord)  -> {
+                    word.set(selectedWord.lemma());
+
                     dictionaryText.getChildren().clear();
+                    grammarCategory.set(null);
+                    if (selectedWord.dictionaryEntry() == null)
+                        return;
+
+                    var entry = selectedWord.dictionaryEntry();
+                    grammarCategory.set(entry.grammatik());
                     dictionaryText.getChildren().add(new Text(entry.declensions() + '\n'));
                     if (entry.meanings() != null) {
                         entry.meanings().forEach(m -> dictionaryText.getChildren().add(new Text(m + '\n')));
                     }
                 }
+                default -> {}
             }
         });
     }
@@ -93,20 +92,20 @@ public class DictionaryPane extends AnchorPane {
     public void ignoreAction() {
         CardEntry cardEntry = editCardBoxController.collectCardEntryInfos().wordOnly();
         System.out.println(cardEntry);
-//        model.addWord(cardEntry, Model.WordState.IGNORED);
+        model.addWord(cardEntry, Model.WordState.IGNORED);
     }
 
     @FXML
     public void learningAction() {
         CardEntry cardEntry = editCardBoxController.collectCardEntryInfos();
         System.out.println(cardEntry);
-//        model.addWord(cardEntry, Model.WordState.LEARNING);
+        model.addWord(cardEntry, Model.WordState.LEARNING);
     }
 
     @FXML
     public void knownAction() {
         CardEntry cardEntry = editCardBoxController.collectCardEntryInfos().wordOnly();
         System.out.println(cardEntry);
-//        model.addWord(cardEntry, Model.WordState.KNOWN);
+        model.addWord(cardEntry, Model.WordState.KNOWN);
     }
 }
