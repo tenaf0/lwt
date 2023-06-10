@@ -13,10 +13,8 @@ import javafx.scene.text.TextFlow;
 import org.example.model.CardEntry;
 import org.example.model.DictionaryLookup;
 import org.example.model.Model;
-import org.example.model.event.DictionaryChange;
-import org.example.model.event.KnownChange;
-import org.example.model.event.PageChange;
-import org.example.model.event.TokenChange;
+import org.example.model.SelectedWord;
+import org.example.model.event.SelectedWordChange;
 import org.example.model.util.Debouncer;
 
 public class DictionaryPane extends AnchorPane {
@@ -29,21 +27,22 @@ public class DictionaryPane extends AnchorPane {
 
         model.subscribe(e -> {
             switch (e) {
-                case PageChange pageChange -> {
-                }
-                case TokenChange tokenChange -> {
-                }
-                case KnownChange knownChange -> {
-                }
-                case DictionaryChange(DictionaryLookup.DictionaryEntry entry)  -> {
-                    word.set(entry.lemma());
-                    grammarCategory.set(entry.grammatik());
+                case SelectedWordChange(SelectedWord selectedWord)  -> {
+                    word.set(selectedWord.lemma());
+
                     dictionaryText.getChildren().clear();
+                    grammarCategory.set(null);
+                    if (selectedWord.dictionaryEntry() == null)
+                        return;
+
+                    var entry = selectedWord.dictionaryEntry();
+                    grammarCategory.set(entry.grammatik());
                     dictionaryText.getChildren().add(new Text(entry.declensions() + '\n'));
                     if (entry.meanings() != null) {
                         entry.meanings().forEach(m -> dictionaryText.getChildren().add(new Text(m + '\n')));
                     }
                 }
+                default -> {}
             }
         });
     }
@@ -86,7 +85,7 @@ public class DictionaryPane extends AnchorPane {
 
     @FXML
     public void onSearch() {
-        debouncer.debounce(() -> model.lookupWord(searchField.getText()), 500);
+        debouncer.debounce(() -> model.selectWord(searchField.getText()), 500);
     }
 
     @FXML

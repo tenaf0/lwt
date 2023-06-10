@@ -6,36 +6,40 @@ import opennlp.tools.sentdetect.SentenceDetectorME;
 import opennlp.tools.sentdetect.SentenceModel;
 import opennlp.tools.tokenize.TokenizerME;
 import opennlp.tools.tokenize.TokenizerModel;
-import org.example.model.Page;
+import org.example.model.TokenLemma;
 import org.example.model.Word;
+import org.example.model.page.Sentence;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 public class TextProcessor {
-    private final String text;
-
-    public TextProcessor(String text) {
-        this.text = text;
-
+    static {
         Util.initLemmatizer();
     }
 
-    public Stream<Page> process() {
-        return pagify(reattach(posTag(tokens(sentences(text)))));
+    public static Stream<Sentence> process(Stream<String> sentences) {
+        return reattach(posTag(tokens(sentences)));
     }
 
-    public static Stream<String> sentences(String text) {
+    public static List<String> sentences(String text) {
         try (InputStream modelIn = TextProcessor.class.getResourceAsStream("/model/opennlp-de-sentence.bin")) {
             SentenceModel model = new SentenceModel(modelIn);
             SentenceDetectorME detector = new SentenceDetectorME(model);
 
-            return Arrays.stream(detector.sentDetect(text));
+            List<String> sentences = new ArrayList<>();
+
+            String[] paragraphs = text.split("\n{2,}");
+            for (var p : paragraphs) {
+                String[] strings = detector.sentDetect(p);
+                sentences.addAll(Arrays.asList(strings));
+                sentences.add(null);
+            }
+
+            return sentences;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -46,7 +50,13 @@ public class TextProcessor {
             TokenizerModel model = new TokenizerModel(modelIn);
             TokenizerME detector = new TokenizerME(model);
 
-            return sentences.map(s -> Arrays.stream(detector.tokenize(s)));
+            return sentences.map(s -> {
+                if (s == null) {
+                    return Stream.of();
+                } else {
+                    return Arrays.stream(detector.tokenize(s));
+                }
+            });
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -71,8 +81,6 @@ public class TextProcessor {
         }
     }
 
-    public record TokenLemma(String token, String lemma) {}
-    public record Sentence(List<TokenLemma> tokens, List<Word> words) {}
     public static Stream<Sentence> reattach(Stream<List<POSToken>> taggedTokens) {
         return taggedTokens.map(s -> {
             List<String> tokens = new ArrayList<>();
@@ -97,50 +105,5 @@ public class TextProcessor {
                     .map(t -> new TokenLemma(t.token, Util.lemmatizeWithIWNLP(t)))
                     .toList(), words);
         });
-    }
-
-    public static Stream<Page> pagify(Stream<Sentence> sentences) {
-        return StreamSupport.stream(new Spliterator<>() {
-            private Iterator<Sentence> iterator = sentences.iterator();
-
-            @Override
-            public boolean tryAdvance(Consumer<? super Page> action) {
-                if (!iterator.hasNext()) {
-                    return false;
-                }
-
-                int i = 0;
-                List<TokenLemma> tokens = new ArrayList<>();
-                List<Word> words = new ArrayList<>();
-                while (i < 300 && iterator.hasNext()) {
-                    Sentence s = iterator.next();
-                    tokens.addAll(s.tokens);
-                    for (var w : s.words) {
-                        int finalI = i;
-                        words.add(new Word(w.tokens().stream().map(ind -> ind + finalI).toList()));
-                    }
-                    i += s.tokens.size();
-                }
-
-                action.accept(new Page(tokens, words));
-
-                return true;
-            }
-
-            @Override
-            public Spliterator<Page> trySplit() {
-                return null;
-            }
-
-            @Override
-            public long estimateSize() {
-                return Long.MAX_VALUE;
-            }
-
-            @Override
-            public int characteristics() {
-                return ORDERED | NONNULL | IMMUTABLE;
-            }
-        }, false);
     }
 }

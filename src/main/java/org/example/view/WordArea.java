@@ -3,9 +3,14 @@ package org.example.view;
 import javafx.geometry.Insets;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.Background;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.Region;
+import javafx.scene.paint.Color;
 import org.example.model.*;
 import org.example.model.event.*;
+import org.example.model.page.Page;
+import org.example.model.page.Sentence;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +19,7 @@ public class WordArea extends AnchorPane {
     private Model model;
     private FlowPane flowPane;
 
-    private List<WordNode> labels = new ArrayList<>();
+    private List<List<WordNode>> labels = new ArrayList<>();
 
     public WordArea(Model model) {
         this.model = model;
@@ -46,41 +51,57 @@ public class WordArea extends AnchorPane {
     private void onChange(ModelEvent change) {
         switch (change) {
             case PageChange(var page) -> onPageChange(page);
-            case DictionaryChange dc -> {}
+            case SelectedWordChange dc -> {}
             case KnownChange k -> onKnownChange();
             case TokenChange(var tokenList) -> {
-                labels.forEach(WordNode::deselect);
-                tokenList.forEach(i -> labels.get(i).select());
+                labels.forEach(s -> s.forEach(WordNode::deselect));
+                tokenList.forEach(s -> labels.get(s.sentenceNo()).get(s.tokenNo()).select());
             }
+            case StateChange stateChange -> {}
         }
     }
 
     private void onPageChange(Page page) {
+        List<Sentence> sentences = page.sentences();
+
         this.flowPane.getChildren().clear();
         labels.clear();
-        for (int i = 0; i < page.tokenList().size(); i++) {
-            var token = page.tokenList().get(i);
+        for (int s = 0; s < sentences.size(); s++) {
+            List<WordNode> sentence = new ArrayList<>();
+            labels.add(sentence);
+            if (sentences.get(s).tokens().size() == 0) {
+                Region p = new Region();
+                p.setBackground(Background.fill(Color.RED));
+                p.prefWidthProperty().bind(flowPane.prefWrapLengthProperty().subtract(1));
+                flowPane.getChildren().add(p);
+            }
+            for (int i = 0; i < sentences.get(s).tokens().size(); i++) {
+                var token = sentences.get(s).tokens().get(i);
 
-            WordNode label = new WordNode(token.token());
-            int finalI = i;
-            label.setOnMouseClicked(e -> {
-                if (e.isShiftDown()) {
-                    model.toggleToken(finalI);
-                } else {
-                    model.selectWord(finalI);
-                }
-            });
-            this.flowPane.getChildren().add(label);
-            labels.add(label);
+                WordNode label = new WordNode(token);
+                int finalS = s;
+                int finalI = i;
+                label.setOnMouseClicked(e -> {
+                    if (e.isShiftDown()) {
+//                    model.toggleToken(finalI);
+                    } else {
+                        model.selectWord(new TokenCoordinate(finalS, finalI));
+                    }
+                });
+                this.flowPane.getChildren().add(label);
+                sentence.add(label);
+            }
         }
 
         onKnownChange();
     }
 
     private void onKnownChange() {
-        for (int i = 0; i < labels.size(); i++) {
-            var label = labels.get(i);
-            label.setState(model.isKnown(i));
+        for (int s = 0; s < labels.size(); s++) {
+            for (int i = 0; i < labels.get(s).size(); i++) {
+                var label = labels.get(s).get(i);
+                label.setState(model.isKnown(new TokenCoordinate(s, i)));
+            }
         }
     }
 }

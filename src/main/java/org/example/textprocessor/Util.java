@@ -14,7 +14,7 @@ public class Util {
         }
         try {
             lemmatizer = new ProcessBuilder("python3",
-                    "src/main/python/lemmatize.py", Util.class.getResource("/model/IWNLP.Lemmatizer_20181001.json").getFile())
+                    "src/main/python/lemmatize.py", Util.class.getResource("/model").getFile())
                     .start();
 
             Thread thread = new Thread(() -> {
@@ -78,9 +78,9 @@ public class Util {
             inputStream.flush();
 
             String s = outputStream.readLine();
-            if (s.isEmpty()) {
+            /*if (s.isEmpty()) {
                 System.out.println(token.token() + " wasn't found (" + token.pos() + "->" + pos + ")");
-            }
+            }*/
             return s.isEmpty() ? null : s;
         } catch (IOException e) {
             throw new RuntimeException(e);

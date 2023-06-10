@@ -2,6 +2,10 @@ package org.example.model;
 
 import javafx.application.Platform;
 import org.example.model.event.*;
+import org.example.model.page.Page;
+import org.example.model.page.PageReader;
+import org.example.model.page.Sentence;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -10,109 +14,103 @@ import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
-import java.util.stream.Stream;
 
 public class Model {
-
-    private Page page;
-    private List<Integer> selectedTokens = new ArrayList<>();
-    private Word selectedWord = null;
-
-    private List<Consumer<ModelEvent>> changeHandlers = new ArrayList<>();
-
-    private final KnownWordDb knownWordDb;
+    private final List<Consumer<ModelEvent>> changeHandlers = new ArrayList<>();
 
     public Model() {
         try {
-            knownWordDb = new KnownWordDb("known_word.db");
+            this.knownWordDb = new KnownWordDb("known_word.db");
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-
-        try {
-            Stream<Page> pageStream = bookReader.pageStream();
-            this.iterator = pageStream.iterator();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
     }
 
-    public void subscribe(Consumer<ModelEvent> pageChangeHandler) {
-        this.changeHandlers.add(pageChangeHandler);
+
+    public enum ModelState {
+        EMPTY, LOADING, LOADED
+    }
+    private @Nullable PageReader pageReader;
+    private Page page;
+
+    private volatile @Nullable SelectedWord selectedWord;
+    private final List<TokenCoordinate> selectedTokens = new ArrayList<>();
+
+    private final KnownWordDb knownWordDb;
+    private final ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor();
+
+    public void openText(Path path) {
+        this.pageReader = new PageReader(path);
+        sendEvent(new StateChange(ModelState.LOADING));
+        pageReader.init(p -> {
+            Platform.runLater(() -> {
+                sendEvent(new StateChange(ModelState.LOADED));
+                setPage(p);
+            });
+        });
     }
 
-    public void setPage(Page page) {
+    private void setPage(Page page) {
         this.page = page;
-        deselectAll();
         sendEvent(new PageChange(page));
     }
 
-    public void toggleToken(int i) {
-        if (this.selectedTokens.contains(i)) {
-            this.selectedTokens.remove((Integer) i);
+    public void changePage(boolean next) {
+        if (next) {
+            pageReader.next();
         } else {
-            this.selectedTokens.add(i);
+            pageReader.prev();
         }
-        sendEvent(new TokenChange(List.copyOf(selectedTokens)));
+
+        setPage(pageReader.getPage());
     }
-
-    private final ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor();
-
-    public void selectWord(int i) {
-        deselectAll();
-        selectedWord = getWord(i);
-        selectedTokens.addAll(selectedWord.tokens());
-        sendEvent(new TokenChange(selectedWord.tokens()));
-        lookupWord(selectedWord.asLemma(page.tokenList()));
-    }
-
-    public void lookupWord(String word) {
-        if (word.isEmpty()) {
-            return;
-        }
+    public void selectWord(String lemma) {
+        List<TokenLemma> word = List.of(new TokenLemma(lemma, lemma));
+        selectedWord = new SelectedWord(word, null, null);
+        sendEvent(new SelectedWordChange(selectedWord));
 
         executorService.submit(() -> {
             try {
-                DictionaryLookup.DictionaryEntry entry = DictionaryLookup.lookup(word);
-                Platform.runLater(() -> sendEvent(new DictionaryChange(entry)));
+                DictionaryLookup.DictionaryEntry entry = DictionaryLookup.lookup(lemma);
+                if (entry != null && selectedWord.word().equals(word)) {
+                    selectedWord = new SelectedWord(word, entry, null);
+                    Platform.runLater(() -> sendEvent(new SelectedWordChange(selectedWord)));
+                }
             } catch (IOException exc) {
                 exc.printStackTrace(System.err);
             }
         });
     }
 
-    public void deselectAll() {
-        selectedTokens.clear();
-        sendEvent(new TokenChange(List.of()));
-    }
+    public void selectWord(TokenCoordinate tokenCoordinate) {
+        Sentence sentence = page.sentences().get(tokenCoordinate.sentenceNo());
 
-    public Word getWord(int i) {
-        List<Word> words = page.words().stream().filter(w -> w.tokens().contains(i)).toList();
-        if (words.size() > 1) {
-            System.err.println("Multiple words containing token " + page.tokenList().get(i) + " found " + words);
-        }
-
-        if (!words.isEmpty()) {
-            return words.get(0);
+        if (sentence.isPartOfWord(tokenCoordinate.tokenNo())) {
+            Word word = sentence.findRelated(tokenCoordinate.tokenNo());
+            sendEvent(new TokenChange(word.tokens().stream()
+                    .map(i -> new TokenCoordinate(tokenCoordinate.sentenceNo(), i))
+                    .toList()));
+            selectWord(word.asLemma(sentence.tokens()));
         } else {
-            return new Word(List.of(i));
+            TokenLemma tokenLemma = sentence.tokens().get(tokenCoordinate.tokenNo());
+            sendEvent(new TokenChange(List.of(tokenCoordinate)));
+            selectWord(tokenLemma.lemma() != null ? tokenLemma.lemma() : tokenLemma.token());
         }
     }
 
     public enum WordState {
         KNOWN, LEARNING, UNKNOWN, IGNORED
     }
+    public WordState isKnown(TokenCoordinate coord) {
+        Sentence sentence = page.sentences().get(coord.sentenceNo());
+        Word word = sentence.findRelated(coord.tokenNo());
 
-    public WordState isKnown(int i) {
-        String token = page.tokenList().get(i).token();
-        if (List.of(",", ".", "-", ";", "?", "!").contains(token)) {
+        String token = sentence.tokens().get(coord.tokenNo()).token();
+        if (List.of(",", ".", "-", ":", ";", "?", "!").contains(token)) {
             return WordState.IGNORED;
         }
 
-        Word word = getWord(i);
-
-        return knownWordDb.isKnown(word.asLemma(page.tokenList()));
+        return knownWordDb.isKnown(word.asLemma(sentence.tokens()));
     }
 
     public void addWord(CardEntry cardEntry, Model.WordState state) {
@@ -120,28 +118,20 @@ public class Model {
         sendEvent(new KnownChange());
     }
 
-    private BookReader bookReader = new BookReader(Path.of("/home/florian/Downloads/HP.txt"));
-
-    private Iterator<Page> iterator;
-
-    public void nextPage() {
-        setPage(iterator.next());
-    }
-
     public void exportRows(Path path) throws IOException {
         AnkiExport.export(knownWordDb.fetchLearningWords(), path);
     }
 
-    public void close() {
-        try {
-            knownWordDb.close();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+    public void subscribe(Consumer<ModelEvent> pageChangeHandler) {
+        this.changeHandlers.add(pageChangeHandler);
     }
 
     private void sendEvent(ModelEvent change) {
-        System.out.println("-> " + change);
+        if (change instanceof PageChange) {
+            System.out.println("Page change");
+        } else {
+            System.out.println("-> " + change);
+        }
         for (var handler : changeHandlers) {
             handler.accept(change);
         }
