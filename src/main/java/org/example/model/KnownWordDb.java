@@ -11,6 +11,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 public class KnownWordDb implements Closeable {
     private static final Cleaner cleaner = Cleaner.create();
@@ -38,6 +39,12 @@ public class KnownWordDb implements Closeable {
 
     public Model.WordState isKnown(String lemma) {
         try (var st = connection.prepareStatement("SELECT status FROM word WHERE LOWER(REPLACE(word, '|', '')) = LOWER(?)")) {
+            Pattern startPattern = Pattern.compile("^\\.{2,}");
+            lemma = startPattern.matcher(lemma).replaceAll("");
+
+            Pattern endPattern = Pattern.compile("(\\.{2,}|:)$");
+            lemma = endPattern.matcher(lemma).replaceAll("");
+
             st.setString(1, lemma);
             ResultSet resultSet = st.executeQuery();
 
