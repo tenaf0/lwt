@@ -110,8 +110,16 @@ public class Model {
             return WordState.IGNORED;
         }
 
-        return knownWordDb.isKnown(word.asLemma(sentence.tokens()));
+        return isKnown(word.asLemma(sentence.tokens()));
     }
+
+    public WordState isKnown(String lemma) {
+        if (lemma == null) {
+            return WordState.UNKNOWN;
+        }
+        return knownWordDb.isKnown(lemma);
+    }
+
 
     public void addWord(CardEntry cardEntry, Model.WordState state) {
         knownWordDb.addWord(cardEntry, state);

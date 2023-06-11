@@ -1,6 +1,7 @@
 package org.example.view;
 
 import javafx.fxml.FXML;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import org.example.model.CardEntry;
 import org.example.model.Model;
@@ -9,6 +10,7 @@ import org.example.model.TokenLemma;
 import org.example.model.event.SelectedWordChange;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -29,7 +31,7 @@ public class EditCardBox {
     private TextField wordField;
 
     @FXML
-    private TextField exampleSentenceField;
+    private TextArea exampleSentenceField;
 
     @FXML
     private TextField meaningField;
@@ -70,6 +72,14 @@ public class EditCardBox {
                     }
                 }
                 default -> {}
+            }
+        });
+
+        wordField.textProperty().addListener((l, o, n) -> {
+            if (Objects.requireNonNull(model.isKnown(n)) == Model.WordState.UNKNOWN) {
+                wordField.getStyleClass().remove("alreadyEntered");
+            } else {
+                wordField.getStyleClass().add("alreadyEntered");
             }
         });
     }

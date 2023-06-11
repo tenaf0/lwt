@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
@@ -7,9 +8,9 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.view.EditCardBox">
+<VBox stylesheets="@style/edit-card-box.css" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.view.EditCardBox">
    <children>
-      <GridPane>
+      <GridPane VBox.vgrow="ALWAYS">
          <columnConstraints>
             <ColumnConstraints hgrow="ALWAYS" maxWidth="1.7976931348623157E308" minWidth="10.0" prefWidth="240.99999237060547" />
          </columnConstraints>
@@ -32,7 +33,7 @@
                   <TextField fx:id="noteField" prefWidth="60.0" promptText="note" HBox.hgrow="SOMETIMES" />
                </children>
             </HBox>
-            <TextField fx:id="exampleSentenceField" promptText="example sentence" GridPane.rowIndex="2" />
+            <TextArea fx:id="exampleSentenceField" promptText="example sentence" wrapText="true" GridPane.rowIndex="2" GridPane.vgrow="ALWAYS" />
          </children>
       </GridPane>
    </children>
