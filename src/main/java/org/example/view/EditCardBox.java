@@ -1,19 +1,17 @@
 package org.example.view;
 
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
 import org.example.model.CardEntry;
 import org.example.model.Model;
 import org.example.model.SelectedWord;
+import org.example.model.TokenLemma;
 import org.example.model.event.SelectedWordChange;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class EditCardBox {
 
@@ -24,13 +22,14 @@ public class EditCardBox {
     }
 
     @FXML
-    private ChoiceBox<?> exampleSentenceChoiceBox;
+    private TextField prefixField;
+    @FXML
+    private TextField postfixField;
+    @FXML
+    private TextField wordField;
 
     @FXML
-    private CheckBox exampleSentenceCustomCheckbox;
-
-    @FXML
-    private HBox exampleSentenceHBox;
+    private TextField exampleSentenceField;
 
     @FXML
     private TextField meaningField;
@@ -38,14 +37,7 @@ public class EditCardBox {
     @FXML
     private TextField noteField;
 
-    @FXML
-    private TextField postfixField;
 
-    @FXML
-    private TextField prefixField;
-
-    @FXML
-    private TextField wordField;
 
     @FXML
     public void initialize() {
@@ -55,6 +47,12 @@ public class EditCardBox {
                     reset();
 
                     wordField.setText(selectedWord.lemma());
+                    if (selectedWord.sentence() != null) {
+                        exampleSentenceField.setText(selectedWord.sentence().tokens()
+                                .stream()
+                                .map(TokenLemma::token)
+                                .collect(Collectors.joining(" ")));
+                    }
 
                     if (selectedWord.dictionaryEntry() == null || selectedWord.dictionaryEntry().grammatik() == null)
                         return;
@@ -82,6 +80,7 @@ public class EditCardBox {
         postfixField.setText(null);
         meaningField.setText(null);
         noteField.setText(null);
+        exampleSentenceField.setText(null);
     }
 
     public CardEntry collectCardEntryInfos() {
@@ -90,21 +89,16 @@ public class EditCardBox {
         String postfix = postfixField.getText();
         String meaning = meaningField.getText();
         String note = noteField.getText();
+        String exampleSentence = exampleSentenceField.getText();
 
-        return new CardEntry(prefix, word, postfix, meaning, note, null);
+        return new CardEntry(emptyTextToNull(prefix), word, emptyTextToNull(postfix),
+                emptyTextToNull(meaning), emptyTextToNull(note), emptyTextToNull(exampleSentence));
     }
 
-    @FXML
-    void onExampleSentenceCustomToggle(ActionEvent event) {
-        if (exampleSentenceCustomCheckbox.isSelected()) {
-            exampleSentenceHBox.getChildren().remove(0);
-            TextField customSentenceField = new TextField();
-            HBox.setHgrow(customSentenceField, Priority.ALWAYS);
-            exampleSentenceHBox.getChildren().add(0, customSentenceField);
-        } else {
-            exampleSentenceHBox.getChildren().remove(0);
-            exampleSentenceHBox.getChildren().add(0, exampleSentenceChoiceBox);
+    private @Nullable String emptyTextToNull(String text) {
+        if (text != null && text.isEmpty()) {
+            return null;
         }
+        return text;
     }
-
 }

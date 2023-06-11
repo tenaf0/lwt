@@ -15,7 +15,7 @@ public class AnkiExport {
         BufferedWriter writer = Files.newBufferedWriter(path);
 
         writer.write("#separator:Semicolon\n");
-        writer.write("#html:false\n");
+        writer.write("#html:true\n");
         writer.write("#tags:german,vocabulary\n");
         writer.write("#columns:word;prefix;postfix;meaning;note;exampleSentence\n");
 

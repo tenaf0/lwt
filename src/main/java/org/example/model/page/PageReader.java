@@ -104,7 +104,7 @@ public class PageReader {
         bufferedPagesReadyIndex.set(-1);
         bufferedPages = new AtomicReferenceArray<>((int) maxPageNo);
 
-        new Thread(() -> {
+        Thread textProcessor = new Thread(() -> {
             Iterator<Sentence> iterator = TextProcessor.process(sentences.stream()).iterator();
             int i = 0;
             var list = new ArrayList<Sentence>();
@@ -124,7 +124,9 @@ public class PageReader {
             if (!list.isEmpty()) {
                 bufferedPages.setRelease(bufferedPagesReadyIndex.incrementAndGet(), new Page(list));
             }
-        }, "TextProcessor").start();
+        }, "TextProcessor");
+        textProcessor.setDaemon(true);
+        textProcessor.start();
     }
 
     public static void main(String[] args) {

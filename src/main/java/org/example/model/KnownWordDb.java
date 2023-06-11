@@ -37,7 +37,7 @@ public class KnownWordDb implements Closeable {
     }
 
     public Model.WordState isKnown(String lemma) {
-        try (var st = connection.prepareStatement("SELECT status FROM word WHERE LOWER(word) = LOWER(?)")) {
+        try (var st = connection.prepareStatement("SELECT status FROM word WHERE LOWER(REPLACE(word, '|', '')) = LOWER(?)")) {
             st.setString(1, lemma);
             ResultSet resultSet = st.executeQuery();
 

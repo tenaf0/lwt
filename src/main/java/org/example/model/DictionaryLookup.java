@@ -40,7 +40,7 @@ public class DictionaryLookup {
             Element declensions = doc.selectFirst("span.inflected_forms");
             Elements meanings = doc.select("div.sense");
 
-            DictionaryEntry entry = new DictionaryEntry(title, grammatik.text(), declensions != null ? declensions.text() : null, meanings.eachText());
+            DictionaryEntry entry = new DictionaryEntry(title, grammatik != null ? grammatik.text() : null, declensions != null ? declensions.text() : null, meanings.eachText());
             cache.put(lemma, entry);
             return entry;
         } catch (Exception e) {

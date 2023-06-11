@@ -1,8 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.CheckBox?>
-<?import javafx.scene.control.ChoiceBox?>
-<?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
@@ -26,7 +23,7 @@
                <children>
                   <TextField fx:id="prefixField" prefWidth="60.0" promptText="prefix" />
                   <TextField fx:id="wordField" promptText="word" HBox.hgrow="ALWAYS" />
-                  <TextField fx:id="postfixField" prefWidth="60.0" promptText="postfix" />
+                  <TextField fx:id="postfixField" prefWidth="90.0" promptText="postfix" />
                </children>
             </HBox>
             <HBox GridPane.rowIndex="1">
@@ -35,13 +32,7 @@
                   <TextField fx:id="noteField" prefWidth="60.0" promptText="note" HBox.hgrow="SOMETIMES" />
                </children>
             </HBox>
-            <HBox fx:id="exampleSentenceHBox" alignment="CENTER_LEFT" GridPane.rowIndex="2">
-               <children>
-                  <ChoiceBox fx:id="exampleSentenceChoiceBox" prefWidth="150.0" />
-                  <Separator prefWidth="100.0" visible="false" HBox.hgrow="ALWAYS" />
-                  <CheckBox fx:id="exampleSentenceCustomCheckbox" mnemonicParsing="false" onAction="#onExampleSentenceCustomToggle" text="Custom" />
-               </children>
-            </HBox>
+            <TextField fx:id="exampleSentenceField" promptText="example sentence" GridPane.rowIndex="2" />
          </children>
       </GridPane>
    </children>

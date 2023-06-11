@@ -1,6 +1,7 @@
 package org.example.view;
 
 import javafx.application.HostServices;
+import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.fxml.FXML;
@@ -85,7 +86,7 @@ public class DictionaryPane extends AnchorPane {
 
     @FXML
     public void onSearch() {
-        debouncer.debounce(() -> model.selectWord(searchField.getText()), 500);
+        debouncer.debounce(() -> Platform.runLater(() -> model.selectWord(searchField.getText(), null)), 500);
     }
 
     @FXML

@@ -64,16 +64,16 @@ public class Model {
 
         setPage(pageReader.getPage());
     }
-    public void selectWord(String lemma) {
+    public void selectWord(String lemma, @Nullable Sentence sentence) {
         List<TokenLemma> word = List.of(new TokenLemma(lemma, lemma));
-        selectedWord = new SelectedWord(word, null, null);
+        selectedWord = new SelectedWord(word, null, sentence);
         sendEvent(new SelectedWordChange(selectedWord));
 
         executorService.submit(() -> {
             try {
                 DictionaryLookup.DictionaryEntry entry = DictionaryLookup.lookup(lemma);
                 if (entry != null && selectedWord.word().equals(word)) {
-                    selectedWord = new SelectedWord(word, entry, null);
+                    selectedWord = new SelectedWord(word, entry, sentence);
                     Platform.runLater(() -> sendEvent(new SelectedWordChange(selectedWord)));
                 }
             } catch (IOException exc) {
@@ -90,11 +90,11 @@ public class Model {
             sendEvent(new TokenChange(word.tokens().stream()
                     .map(i -> new TokenCoordinate(tokenCoordinate.sentenceNo(), i))
                     .toList()));
-            selectWord(word.asLemma(sentence.tokens()));
+            selectWord(word.asLemma(sentence.tokens()), sentence);
         } else {
             TokenLemma tokenLemma = sentence.tokens().get(tokenCoordinate.tokenNo());
             sendEvent(new TokenChange(List.of(tokenCoordinate)));
-            selectWord(tokenLemma.lemma() != null ? tokenLemma.lemma() : tokenLemma.token());
+            selectWord(tokenLemma.lemma() != null ? tokenLemma.lemma() : tokenLemma.token(), sentence);
         }
     }
 
