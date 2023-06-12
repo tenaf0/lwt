@@ -3,11 +3,10 @@ package org.example.view;
 import javafx.geometry.Insets;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.FlowPane;
-import javafx.scene.layout.Region;
-import javafx.scene.paint.Color;
-import org.example.model.*;
+import javafx.scene.text.Text;
+import javafx.scene.text.TextFlow;
+import org.example.model.Model;
+import org.example.model.TokenCoordinate;
 import org.example.model.event.*;
 import org.example.model.page.Page;
 import org.example.model.page.Sentence;
@@ -17,7 +16,7 @@ import java.util.List;
 
 public class WordArea extends AnchorPane {
     private Model model;
-    private FlowPane flowPane;
+    private TextFlow textFlow;
 
     private List<List<WordNode>> labels = new ArrayList<>();
 
@@ -29,16 +28,14 @@ public class WordArea extends AnchorPane {
 
         setPadding(new Insets(4));
 
-        flowPane = new FlowPane();
-        flowPane.prefWrapLengthProperty().bind(widthProperty().subtract(30));
-        flowPane.setPadding(new Insets(3.0));
-        flowPane.setHgap(5.0);
-        flowPane.setVgap(5.0);
+        textFlow = new TextFlow();
+        textFlow.setLineSpacing(4.5);
+        textFlow.setPadding(new Insets(3.0));
 
         ScrollPane scrollPane = new ScrollPane();
         scrollPane.setFitToWidth(true);
         scrollPane.setFitToHeight(true);
-        scrollPane.setContent(flowPane);
+        scrollPane.setContent(textFlow);
 
         AnchorPane.setTopAnchor(scrollPane, 0.0);
         AnchorPane.setLeftAnchor(scrollPane, 0.0);
@@ -64,15 +61,13 @@ public class WordArea extends AnchorPane {
     private void onPageChange(Page page) {
         List<Sentence> sentences = page.sentences();
 
-        this.flowPane.getChildren().clear();
+        this.textFlow.getChildren().clear();
         labels.clear();
         for (int s = 0; s < sentences.size(); s++) {
             List<WordNode> sentence = new ArrayList<>();
             labels.add(sentence);
             if (sentences.get(s).tokens().size() == 0) {
-                Region p = new Region();
-                p.prefWidthProperty().bind(flowPane.prefWrapLengthProperty().subtract(1));
-                flowPane.getChildren().add(p);
+                new Text("\n");
             }
             for (int i = 0; i < sentences.get(s).tokens().size(); i++) {
                 var token = sentences.get(s).tokens().get(i);
@@ -87,7 +82,7 @@ public class WordArea extends AnchorPane {
                         model.selectWord(new TokenCoordinate(finalS, finalI));
                     }
                 });
-                this.flowPane.getChildren().add(label);
+                this.textFlow.getChildren().add(label);
                 sentence.add(label);
             }
         }

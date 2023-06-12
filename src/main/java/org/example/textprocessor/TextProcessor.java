@@ -7,6 +7,7 @@ import opennlp.tools.formats.conllu.ConlluStream;
 import opennlp.tools.sentdetect.SentenceDetectorME;
 import opennlp.tools.sentdetect.SentenceModel;
 import org.example.model.TokenLemma;
+import org.example.model.Word;
 import org.example.model.page.Sentence;
 
 import java.io.ByteArrayInputStream;
@@ -37,9 +38,15 @@ public class TextProcessor {
             ArrayList<Sentence> result = new ArrayList<>();
 
             while ((conlluSentence = conlluStream.read()) != null) {
-                result.add(new Sentence(conlluSentence.getWordLines().stream()
+                List<TokenLemma> tokenLemmas = conlluSentence.getWordLines().stream()
                         .map(wl -> new TokenLemma(wl.getForm(), wl.getLemma()))
-                        .toList(), List.of()));
+                        .toList();
+                List<Word> words = conlluSentence.getWordLines().stream()
+                        .filter(wl -> wl.getDeprel().equals("compound:prt"))
+                        .map(wl -> new Word(List.of(Integer.parseInt(wl.getId())-1, Integer.parseInt(wl.getHead())-1))) // separable verbs
+                        .toList();
+
+                result.add(new Sentence(tokenLemmas, words));
             }
 
             return result.stream();

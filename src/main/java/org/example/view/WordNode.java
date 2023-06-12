@@ -1,21 +1,29 @@
 package org.example.view;
 
+import javafx.geometry.Insets;
 import javafx.scene.control.Label;
-import javafx.scene.layout.Border;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import org.example.model.Model;
 import org.example.model.TokenLemma;
 
-public class WordNode extends Label {
+public class WordNode extends Region {
     private Model.WordState state;
+    private Label label;
     private boolean selected = false;
 
     public WordNode(TokenLemma tokenLemma) {
-        super(tokenLemma.token());
+        label = new Label(tokenLemma.token());
+        getChildren().add(label);
 
         setState(Model.WordState.UNKNOWN);
-        setFont(new Font(14.0));
-        setBorder(Border.EMPTY);
+        label.setFont(new Font(14.0));
+        label.setPadding(new Insets(0.2, 0.4, 0.2, 0.4));
+        label.setBorder(new Border(new BorderStroke(Color.TRANSPARENT, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderStroke.DEFAULT_WIDTHS)));
+
+        setPadding(new Insets(0.2, 2.8, 0.2, 2.8));
+
     }
 
     public void setState(Model.WordState state) {
@@ -37,10 +45,10 @@ public class WordNode extends Label {
     }
 
     private void setStyle() {
-        getStyleClass().clear();
-        getStyleClass().add(state.toString().toLowerCase());
+        label.getStyleClass().clear();
+        label.getStyleClass().add(state.toString().toLowerCase());
         if (selected) {
-            getStyleClass().add("selected");
+            label.getStyleClass().add("selected");
         }
     }
 }
