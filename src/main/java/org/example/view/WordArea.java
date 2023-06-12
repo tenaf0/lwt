@@ -71,7 +71,6 @@ public class WordArea extends AnchorPane {
             labels.add(sentence);
             if (sentences.get(s).tokens().size() == 0) {
                 Region p = new Region();
-                p.setBackground(Background.fill(Color.RED));
                 p.prefWidthProperty().bind(flowPane.prefWrapLengthProperty().subtract(1));
                 flowPane.getChildren().add(p);
             }
