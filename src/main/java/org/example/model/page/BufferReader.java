@@ -101,7 +101,7 @@ public class BufferReader {
             List<String> sentences = TextProcessor.sentences(sentencesText);
 
             stream.reset();
-            if (sentences.size() >= 3) { // We need at least 3 sentences to be sure that the 2nd is a full one.
+            if (sentences.size() >= 3 && sentences.get(2) != null) { // We need at least 3 sentences to be sure that the 2nd is a full one.
                 int sentenceIndex = sentencesText.indexOf(sentences.get(2));
                 byte[] sentenceBytes = sentencesText.substring(0, sentenceIndex).getBytes(StandardCharsets.UTF_8);
                 int length = sentenceBytes.length;

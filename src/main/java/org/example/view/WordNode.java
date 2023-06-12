@@ -1,6 +1,8 @@
 package org.example.view;
 
 import javafx.scene.control.Label;
+import javafx.scene.layout.Border;
+import javafx.scene.text.Font;
 import org.example.model.Model;
 import org.example.model.TokenLemma;
 
@@ -12,6 +14,8 @@ public class WordNode extends Label {
         super(tokenLemma.token());
 
         setState(Model.WordState.UNKNOWN);
+        setFont(new Font(14.0));
+        setBorder(Border.EMPTY);
     }
 
     public void setState(Model.WordState state) {

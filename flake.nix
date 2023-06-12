@@ -7,6 +7,9 @@
       openjdk = pkgs.openjdk19.override { enableJavaFX = true; };
     in {
       devShells.x86_64-linux.default = with pkgs; mkShell {
+        shellHook = ''
+          export LD_LIBRARY_PATH=/home/florian/Documents/git/lwt/udpipe/udpipe-1.3.0-bin/bin-linux64/java/:$LD_LIBRARY_PATH
+        '';
         buildInputs = [ openjdk python3 ];
         };
   };
