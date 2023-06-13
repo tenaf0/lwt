@@ -31,6 +31,7 @@ public class Model {
         EMPTY, LOADING, LOADED
     }
     private @Nullable PageReader pageReader;
+    private PageReader.BufferPage currentPage = new PageReader.BufferPage(0, 0);
     private Page page;
 
     private volatile @Nullable SelectedWord selectedWord;
@@ -41,6 +42,7 @@ public class Model {
 
     public void openText(Path path) {
         this.pageReader = new PageReader(path);
+        this.currentPage = new PageReader.BufferPage(0, 0);
         sendEvent(new StateChange(ModelState.LOADING));
         pageReader.init(p -> {
             Platform.runLater(() -> {
@@ -57,13 +59,18 @@ public class Model {
 
     public void changePage(boolean next) {
         if (next) {
-            pageReader.next();
+            currentPage = pageReader.next(currentPage);
         } else {
-            pageReader.prev();
+            currentPage = pageReader.prev(currentPage);
         }
+        System.out.println("Requested " + currentPage);
 
-        setPage(pageReader.getPage());
+        new Thread(() -> {
+            Page page = pageReader.getPage(currentPage);
+            Platform.runLater(() -> setPage(page));
+        }).start();
     }
+
     public void selectWord(String lemma, @Nullable Sentence sentence) {
         List<TokenLemma> word = List.of(new TokenLemma(lemma, lemma));
         selectedWord = new SelectedWord(word, null, sentence);

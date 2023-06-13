@@ -4,21 +4,20 @@ import org.example.textprocessor.TextProcessor;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class BufferReader {
-    private static final int BUFFER_SIZE = 2048*8;
+    private static final int BUFFER_SIZE = 2048*4;
     private static final int MAX_TAIL_LENGTH = 1024;
 
     private final RandomAccessFile file;
 
     private final long maxBufferNo;
-    private long bufferNo;
-    private final byte[] buffer = new byte[BUFFER_SIZE];
-    private String bufferText;
+    private final Map<Long, String> bufferTextMap = new ConcurrentHashMap<>();
 
     private BufferReader(Path path) throws IOException {
         this.file = new RandomAccessFile(path.toFile(), "r");
@@ -30,9 +29,13 @@ public class BufferReader {
     }
 
     public String getBuffer(long n) {
+        if (bufferTextMap.containsKey(n)) {
+            return bufferTextMap.get(n);
+        }
+
         try {
             readNthBuffer(n);
-            return bufferText;
+            return bufferTextMap.get(n);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -46,8 +49,8 @@ public class BufferReader {
         System.out.println("Attempting reading " + n);
         file.seek(BUFFER_SIZE*n);
 
-        this.bufferNo = n;
 
+        final byte[] buffer = new byte[BUFFER_SIZE];
         int readChars = file.read(buffer);
 
         BufferedInputStream stream = new BufferedInputStream(new ByteArrayInputStream(buffer, 0, readChars));
@@ -61,7 +64,8 @@ public class BufferReader {
         ByteArrayOutputStream tailSentence = findTailSentence(new BufferedInputStream(new FileInputStream(file.getFD())), true);
         textStream.write(tailSentence.toByteArray());
 
-        bufferText = textStream.toString(StandardCharsets.UTF_8);
+        String bufferText = textStream.toString(StandardCharsets.UTF_8);
+        bufferTextMap.put(n, bufferText);
     }
 
     /**
@@ -120,7 +124,21 @@ public class BufferReader {
     }
 
     public static void main(String[] args) throws IOException {
-        BufferReader pageReader = BufferReader.fromFile(Path.of("/home/florian/Downloads/germanSample.txt"));
+        BufferReader bufferReader = BufferReader.fromFile(Path.of("/home/florian/Downloads/HP.txt"));
+
+        /*try (ExecutorService executorService = Executors.newFixedThreadPool(4)) {
+            for (int i = 0; i < bufferReader.maxBufferNo; i++) {
+                int finalI = i;
+                executorService.submit(() -> {
+                    String buffer = bufferReader.getBuffer(finalI);
+                    TextProcessor.process(buffer);
+                    System.out.println("Finished " + finalI);
+                });
+
+                bufferReader.getBuffer(0);
+                System.out.println("Got 0");
+            }
+        }*/
 /*
         byte[] bytes = "\uD83C\uDCA0űŰasd".getBytes(StandardCharsets.UTF_8);
         BufferedInputStream stream = new BufferedInputStream(new ByteArrayInputStream(Arrays.copyOfRange(bytes, 2, bytes.length)));
@@ -134,12 +152,12 @@ public class BufferReader {
         }
 */
 
-        BufferedWriter bufferedWriter = Files.newBufferedWriter(Path.of("asdasd.txt"));
+        /*BufferedWriter bufferedWriter = Files.newBufferedWriter(Path.of("asdasd.txt"));
 
         bufferedWriter.write(pageReader.bufferText);
         for (int i = 1; i <= pageReader.maxBufferNo; i++) {
             pageReader.readNthBuffer(i);
             bufferedWriter.write(pageReader.bufferText);
-        }
+        }*/
     }
 }
