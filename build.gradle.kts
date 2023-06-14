@@ -5,7 +5,7 @@ plugins {
     id("dev.hydraulic.conveyor") version "1.5"
 }
 
-group = "org.example"
+group = "hu.garaba"
 version = "1.0-SNAPSHOT"
 
 repositories {
@@ -27,7 +27,7 @@ dependencies {
 }
 
 application {
-    mainClass.set("org.example.Main")
+    mainClass.set("hu.garaba.Main")
     applicationDefaultJvmArgs = listOf("--enable-preview")
 }
 
