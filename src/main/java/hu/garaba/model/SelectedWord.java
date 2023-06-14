@@ -1,6 +1,6 @@
 package hu.garaba.model;
 
-import hu.garaba.model.page.Sentence;
+import hu.garaba.buffer.Sentence;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;

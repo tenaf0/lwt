@@ -10,17 +10,17 @@ import hu.garaba.model.TokenLemma;
 
 public class WordNode extends Region {
     private Model.WordState state;
-    private Label label;
     private boolean selected = false;
+    private final Label textLabel;
 
     public WordNode(TokenLemma tokenLemma) {
-        label = new Label(tokenLemma.token());
-        getChildren().add(label);
+        textLabel = new Label(tokenLemma.token());
+        getChildren().add(textLabel);
 
         setState(Model.WordState.UNKNOWN);
-        label.setFont(new Font(14.0));
-        label.setPadding(new Insets(0.2, 0.4, 0.2, 0.4));
-        label.setBorder(new Border(new BorderStroke(Color.TRANSPARENT, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderStroke.DEFAULT_WIDTHS)));
+        textLabel.setFont(new Font(14.0));
+        textLabel.setPadding(new Insets(0.2, 0.4, 0.2, 0.4));
+        textLabel.setBorder(new Border(new BorderStroke(Color.TRANSPARENT, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderStroke.DEFAULT_WIDTHS)));
 
         setPadding(new Insets(0.2, 2.8, 0.2, 2.8));
 
@@ -45,10 +45,10 @@ public class WordNode extends Region {
     }
 
     private void setStyle() {
-        label.getStyleClass().clear();
-        label.getStyleClass().add(state.toString().toLowerCase());
+        textLabel.getStyleClass().clear();
+        textLabel.getStyleClass().add(state.toString().toLowerCase());
         if (selected) {
-            label.getStyleClass().add("selected");
+            textLabel.getStyleClass().add("selected");
         }
     }
 }

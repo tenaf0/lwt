@@ -8,7 +8,7 @@ import opennlp.tools.sentdetect.SentenceDetectorME;
 import opennlp.tools.sentdetect.SentenceModel;
 import hu.garaba.model.TokenLemma;
 import hu.garaba.model.Word;
-import hu.garaba.model.page.Sentence;
+import hu.garaba.buffer.Sentence;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -25,6 +25,20 @@ public class TextProcessor {
 
     static {
         model = Model.load(TextProcessor.class.getResource("/model/german-hdt-ud-2.5-191206.udpipe").getFile());
+    }
+
+    public static void warmup() {
+        TextProcessor.process("""
+                Wer reitet so spät durch Nacht und Wind?
+                Es ist der Vater mit seinem Kind;
+                Er hat den Knaben wohl in dem Arm,
+                Er faßt ihn sicher, er hält ihn warm.
+                                
+                "Mein Sohn, was birgst du so bang dein Gesicht?"--
+                "Siehst, Vater, du den Erlkönig nicht?
+                Den Erlenkönig mit Kron' und Schweif?"--
+                "Mein Sohn, es ist ein Nebelstreif."
+                """);
     }
 
     public static Stream<Sentence> process(String sentences) {

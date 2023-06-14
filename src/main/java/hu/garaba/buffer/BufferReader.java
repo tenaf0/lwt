@@ -1,26 +1,37 @@
-package hu.garaba.model.page;
+package hu.garaba.buffer;
 
 import hu.garaba.textprocessor.TextProcessor;
 
 import java.io.*;
+import java.lang.ref.SoftReference;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingDeque;
 
+/**
+ * A BufferReader is a thread-safe class that can load the text content of UTF-8 encoded txt files in blocks, where each block
+ * is made from a whole number of German sentences (so that subsequent language processing should not care about partial sentences).
+ */
 public class BufferReader {
     private static final int BUFFER_SIZE = 2048*4;
     private static final int MAX_TAIL_LENGTH = 1024;
 
-    private final RandomAccessFile file;
-
     private final long maxBufferNo;
-    private final Map<Long, String> bufferTextMap = new ConcurrentHashMap<>();
+    private final Map<Long, SoftReference<String>> bufferTextMap = new ConcurrentHashMap<>();
+
+    private final Path filePath;
+    // Meaningless optimization, wanted to replace with MappedByteBuffer's slices but their thread-safety guarantees are unspecified. Might be replaced with MemorySegment-based API
+    private final BlockingDeque<RandomAccessFile> fileQueue = new LinkedBlockingDeque<>(4);
 
     private BufferReader(Path path) throws IOException {
-        this.file = new RandomAccessFile(path.toFile(), "r");
+        this.filePath = path;
+        var file = new RandomAccessFile(path.toFile(), "r");
+        fileQueue.add(file);
         this.maxBufferNo = file.length() / BUFFER_SIZE + (file.length() % BUFFER_SIZE == 0 ? 0 : 1);
     }
 
@@ -28,27 +39,50 @@ public class BufferReader {
         return maxBufferNo;
     }
 
+    /**
+     * A blocking call that will start loading the {@code n}th block if it hasn't been started yet.
+     * @param n The index of the block of the file that should be loaded to memory
+     * @return A String that is contained in the nth block of the opened file started from the 3rd *recognized* German sentence,
+     * possibly ending past this buffer's content into the n+1 th block.
+     */
     public String getBuffer(long n) {
-        if (bufferTextMap.containsKey(n)) {
-            return bufferTextMap.get(n);
+        SoftReference<String> softRef;
+
+        do {
+            softRef = bufferTextMap.get(n);
+        } while (softRef != null && softRef.get() == null);
+
+        if (softRef != null) {
+            return softRef.get();
         }
 
         try {
-            readNthBuffer(n);
-            return bufferTextMap.get(n);
+            if (fileQueue.size() == 0) {
+                fileQueue.offer(new RandomAccessFile(filePath.toFile(), "r"));
+            }
+
+            return readNthBuffer(n);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private void readNthBuffer(long n) throws IOException {
+    private String readNthBuffer(long n) throws IOException {
         if (n >= maxBufferNo || n < 0) {
             throw new IllegalArgumentException("Can't read buffer no %d. n should be >= 0 and < %d".formatted(n, maxBufferNo));
         }
 
-        System.out.println("Attempting reading " + n);
-        file.seek(BUFFER_SIZE*n);
+        bufferTextMap.put(n, new SoftReference<>(null));
+        System.out.println("Started loading block " + n);
 
+        RandomAccessFile file;
+        try {
+            file = fileQueue.takeFirst();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+        file.seek(BUFFER_SIZE*n);
 
         final byte[] buffer = new byte[BUFFER_SIZE];
         int readChars = file.read(buffer);
@@ -65,7 +99,11 @@ public class BufferReader {
         textStream.write(tailSentence.toByteArray());
 
         String bufferText = textStream.toString(StandardCharsets.UTF_8);
-        bufferTextMap.put(n, bufferText);
+        bufferTextMap.put(n, new SoftReference<>(bufferText));
+
+        fileQueue.add(file);
+
+        return bufferText;
     }
 
     /**
@@ -120,44 +158,6 @@ public class BufferReader {
     }
 
     public static BufferReader fromFile(Path path) throws IOException {
-        return new BufferReader(path); // TODO
-    }
-
-    public static void main(String[] args) throws IOException {
-        BufferReader bufferReader = BufferReader.fromFile(Path.of("/home/florian/Downloads/HP.txt"));
-
-        /*try (ExecutorService executorService = Executors.newFixedThreadPool(4)) {
-            for (int i = 0; i < bufferReader.maxBufferNo; i++) {
-                int finalI = i;
-                executorService.submit(() -> {
-                    String buffer = bufferReader.getBuffer(finalI);
-                    TextProcessor.process(buffer);
-                    System.out.println("Finished " + finalI);
-                });
-
-                bufferReader.getBuffer(0);
-                System.out.println("Got 0");
-            }
-        }*/
-/*
-        byte[] bytes = "\uD83C\uDCA0űŰasd".getBytes(StandardCharsets.UTF_8);
-        BufferedInputStream stream = new BufferedInputStream(new ByteArrayInputStream(Arrays.copyOfRange(bytes, 2, bytes.length)));
-        Pages.findTailSentence(stream, false);
-
-        String s = new String(stream.readAllBytes(), StandardCharsets.UTF_8);
-        System.out.println(s);
-
-        if (true) {
-            return;
-        }
-*/
-
-        /*BufferedWriter bufferedWriter = Files.newBufferedWriter(Path.of("asdasd.txt"));
-
-        bufferedWriter.write(pageReader.bufferText);
-        for (int i = 1; i <= pageReader.maxBufferNo; i++) {
-            pageReader.readNthBuffer(i);
-            bufferedWriter.write(pageReader.bufferText);
-        }*/
+        return new BufferReader(path);
     }
 }

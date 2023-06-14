@@ -1,16 +1,15 @@
-package hu.garaba.model.page;
+package hu.garaba.buffer;
 
 import hu.garaba.textprocessor.TextProcessor;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.*;
 import java.util.function.Consumer;
 
 public class PageReader {
-    private static final int PAGE_SIZE = 8; // number of sentences on each page
+    protected static final int PAGE_SIZE = 10; // number of sentences on each page
 
     private final BufferReader bufferReader;
     private long maxBufferNo;
@@ -18,7 +17,13 @@ public class PageReader {
     public record BufferPage(int bufferNo, int pageNo) {}
 
     record PageHandler(boolean complete, CopyOnWriteArrayList<Page> pages) {}
-    private Map<Integer, PageHandler> bufferedPages = new ConcurrentHashMap<>();
+    private final Map<Integer, PageHandler> bufferedPages = new ConcurrentHashMap<>();
+
+    private final ExecutorService executorService = Executors.newCachedThreadPool(r -> {
+        var thread = new Thread(r);
+        thread.setDaemon(true);
+        return thread;
+    });
 
     public PageReader(Path path) {
         try {
@@ -30,18 +35,14 @@ public class PageReader {
     }
 
     public void init(Consumer<Page> fn) {
-        Thread loaderThread = new Thread(() -> {
+        executorService.submit(() -> {
             loadPages(0);
         });
-        loaderThread.setDaemon(true);
-        loaderThread.start();
 
-        Thread thread = new Thread(() -> {
+        executorService.submit(() -> {
             Page page = getPage(new BufferPage(0, 0), false);
             fn.accept(page);
-        }, "PageReader init thread");
-        thread.setDaemon(true);
-        thread.start();
+        });
     }
 
     private void touchPage(BufferPage page, boolean shouldInitLoad) {
@@ -98,11 +99,9 @@ public class PageReader {
         }
 
         BufferPage finalPage = page;
-        Thread thread = new Thread(() -> {
+        executorService.submit(() -> {
             loadPages(finalPage.bufferNo + 1);
-        }, "next buffer loader");
-        thread.setDaemon(true);
-        thread.start();
+        });
 
         return page;
     }
@@ -122,6 +121,10 @@ public class PageReader {
         }
 
         return page;
+    }
+
+    public void submit(Runnable runnable) {
+        executorService.submit(runnable);
     }
 
     private void loadPages(int bufferNo) {
@@ -161,76 +164,5 @@ public class PageReader {
         }
 
         bufferedPages.put(bufferNo, new PageHandler(true, bufferPages));
-    }
-
-    /*private synchronized void loadBuffer(int n) {
-        assert n >= 0 && n <= maxBufferNo;
-
-        String bufferText = bufferReader.getBuffer(n);
-        List<String> sentences = TextProcessor.sentences(bufferText);
-        bufferNo = n;
-        long sentenceSize = sentences.stream().filter(Objects::nonNull).count();
-        maxPageNo = sentenceSize / PAGE_SIZE + (sentenceSize % PAGE_SIZE == 0 ? 0 : 1);
-        pageNo = -1;
-
-        bufferedPagesReadyIndex.set(-1);
-        bufferedPages = new AtomicReferenceArray<>((int) maxPageNo);
-
-        Thread textProcessor = new Thread(() -> {
-            Iterator<Sentence> iterator = TextProcessor.process(sentences.stream()).iterator();
-            int i = 0;
-            var list = new ArrayList<Sentence>();
-            while (iterator.hasNext()) {
-                Sentence sentence = iterator.next();
-                list.add(sentence);
-                if (sentence.tokens().size() > 0) {
-                    i++;
-                }
-                if (i == PAGE_SIZE) {
-                    bufferedPages.setRelease(bufferedPagesReadyIndex.incrementAndGet(), new Page(list));
-                    list = new ArrayList<>();
-                    i = 0;
-                }
-            }
-
-            if (!list.isEmpty()) {
-                bufferedPages.setRelease(bufferedPagesReadyIndex.incrementAndGet(), new Page(list));
-            }
-        }, "TextProcessor");
-        textProcessor.setDaemon(true);
-        textProcessor.start();
-    }*/
-
-    public static void main(String[] args) {
-
-        Random random = new Random();
-        for (int i = 0; i < 50; i++) {
-            PageReader pageReader = new PageReader(Path.of("/home/florian/Downloads/HP.txt"));
-
-            try {
-                pageReader.getPage(new BufferPage(random.nextInt((int) pageReader.maxBufferNo), random.nextInt(10)));
-            } catch (Exception e) {
-                e.printStackTrace(System.err);
-            }
-
-            /*final long l = System.currentTimeMillis();
-            Semaphore semaphore = new Semaphore(1);
-            try {
-                semaphore.acquire();
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-
-            pageReader.init(p -> {
-                System.out.println(System.currentTimeMillis() - l);
-                semaphore.release();
-            });
-
-            try {
-                semaphore.acquire();
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }*/
-        }
     }
 }

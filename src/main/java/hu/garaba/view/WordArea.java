@@ -3,8 +3,8 @@ package hu.garaba.view;
 import hu.garaba.model.Model;
 import hu.garaba.model.TokenCoordinate;
 import hu.garaba.model.event.*;
-import hu.garaba.model.page.Page;
-import hu.garaba.model.page.Sentence;
+import hu.garaba.buffer.Page;
+import hu.garaba.buffer.Sentence;
 import javafx.geometry.Insets;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.AnchorPane;
@@ -15,10 +15,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class WordArea extends AnchorPane {
-    private Model model;
-    private TextFlow textFlow;
+    private final Model model;
+    private final TextFlow textFlow;
 
-    private List<List<WordNode>> labels = new ArrayList<>();
+    private final List<List<WordNode>> labels = new ArrayList<>();
 
     public WordArea(Model model) {
         this.model = model;

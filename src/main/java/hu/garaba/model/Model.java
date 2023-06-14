@@ -1,9 +1,9 @@
 package hu.garaba.model;
 
 import hu.garaba.model.event.*;
-import hu.garaba.model.page.Page;
-import hu.garaba.model.page.PageReader;
-import hu.garaba.model.page.Sentence;
+import hu.garaba.buffer.Page;
+import hu.garaba.buffer.PageReader;
+import hu.garaba.buffer.Sentence;
 import javafx.application.Platform;
 import org.jetbrains.annotations.Nullable;
 
@@ -66,10 +66,10 @@ public class Model {
         }
         System.out.println("Requested " + currentPage);
 
-        new Thread(() -> {
+        pageReader.submit(() -> {
             Page page = pageReader.getPage(currentPage);
             Platform.runLater(() -> setPage(page));
-        }).start();
+        });
     }
 
     public void selectWord(String lemma, @Nullable Sentence sentence) {
@@ -136,6 +136,14 @@ public class Model {
 
     public void exportRows(Path path) throws IOException {
         AnkiExport.export(knownWordDb.fetchLearningWords(), path);
+    }
+
+    public void close() {
+        try {
+            knownWordDb.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public void subscribe(Consumer<ModelEvent> pageChangeHandler) {

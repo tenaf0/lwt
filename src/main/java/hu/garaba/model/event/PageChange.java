@@ -1,6 +1,6 @@
 package hu.garaba.model.event;
 
-import hu.garaba.model.page.Page;
+import hu.garaba.buffer.Page;
 
 public record PageChange(Page newPage) implements ModelEvent {
 }

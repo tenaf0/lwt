@@ -1,4 +1,4 @@
-package hu.garaba.model.page;
+package hu.garaba.buffer;
 
 import hu.garaba.model.TokenLemma;
 import hu.garaba.model.Word;
