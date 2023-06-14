@@ -14,6 +14,8 @@ The 'Learning' collection can then be exported to an Anki-compatible csv file fo
 One advantage of the program over similar offerings is its support for compound words like separable verbs.
 You are also not locked into it, every data is stored on your device.
 
+![](screenshot.png)
+
 ## Technical description
 
 The program is written in JavaFX and uses OpenNLP and UDPipe 1 for the language processing.
