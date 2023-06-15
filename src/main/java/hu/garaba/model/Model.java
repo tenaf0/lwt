@@ -1,5 +1,6 @@
 package hu.garaba.model;
 
+import hu.garaba.dictionary.DictionaryLookup;
 import hu.garaba.model.event.*;
 import hu.garaba.buffer.Page;
 import hu.garaba.buffer.PageReader;

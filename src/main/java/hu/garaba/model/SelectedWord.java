@@ -1,6 +1,7 @@
 package hu.garaba.model;
 
 import hu.garaba.buffer.Sentence;
+import hu.garaba.dictionary.DictionaryLookup;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;

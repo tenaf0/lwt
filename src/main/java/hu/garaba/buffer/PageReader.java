@@ -35,9 +35,7 @@ public class PageReader {
     }
 
     public void init(Consumer<Page> fn) {
-        executorService.submit(() -> {
-            loadPages(0);
-        });
+        executorService.submit(() -> loadPages(0));
 
         executorService.submit(() -> {
             Page page = getPage(new BufferPage(0, 0), false);
@@ -48,7 +46,7 @@ public class PageReader {
     private void touchPage(BufferPage page, boolean shouldInitLoad) {
         PageHandler pageHandler;
         do {
-            pageHandler= bufferedPages.get(page.bufferNo);
+            pageHandler = bufferedPages.get(page.bufferNo);
         } while ((!shouldInitLoad && pageHandler == null)
                 || (pageHandler != null && pageHandler.pages.size() <= page.pageNo));
 
@@ -88,11 +86,10 @@ public class PageReader {
     }*/
 
     public BufferPage next(BufferPage page) {
-        touchPage(page, true);
-
-        if (!bufferedPages.get(page.bufferNo).complete) {
+        PageHandler pageHandler = bufferedPages.get(page.bufferNo);
+        if (pageHandler == null || !pageHandler.complete) {
             return page;
-        } else if (page.pageNo + 1 < bufferedPages.get(page.bufferNo).pages.size()) {
+        } else if (page.pageNo + 1 < pageHandler.pages.size()) {
             page = new BufferPage(page.bufferNo, page.pageNo + 1);
         } else if (page.bufferNo + 1 < maxBufferNo) {
             page = new BufferPage(page.bufferNo + 1, 0);
@@ -101,6 +98,7 @@ public class PageReader {
         BufferPage finalPage = page;
         executorService.submit(() -> {
             loadPages(finalPage.bufferNo + 1);
+            loadPages(finalPage.bufferNo + 2);
         });
 
         return page;
@@ -111,11 +109,9 @@ public class PageReader {
     }*/
 
     public BufferPage prev(BufferPage page) {
-        touchPage(page, true);
-
         if (page.pageNo - 1 >= 0) {
             page = new BufferPage(page.bufferNo, page.pageNo - 1);
-        } else if (page.bufferNo > 0 && bufferedPages.get(page.bufferNo - 1).complete) {
+        } else if (page.bufferNo > 0 && bufferedPages.get(page.bufferNo - 1) != null && bufferedPages.get(page.bufferNo - 1).complete) {
             int prevBufferPages = bufferedPages.get(page.bufferNo - 1).pages.size();
             page = new BufferPage(page.bufferNo-1, prevBufferPages - 1);
         }
@@ -141,7 +137,6 @@ public class PageReader {
         if (prevValue != null) {
             return;
         }
-;
 
         Iterator<Sentence> iterator = TextProcessor.process(sentences.stream()).iterator();
         int i = 0;

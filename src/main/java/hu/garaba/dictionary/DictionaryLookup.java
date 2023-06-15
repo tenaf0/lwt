@@ -1,4 +1,4 @@
-package hu.garaba.model;
+package hu.garaba.dictionary;
 
 import org.jetbrains.annotations.Nullable;
 import org.jsoup.Jsoup;

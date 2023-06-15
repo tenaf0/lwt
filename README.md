@@ -28,11 +28,11 @@ folder is available on your platform's dynamic library path.
 
 ### Linux
 
-```export LD_LIBRARY_PATH=.../bin-linux64/java/:$LD_LIBRARY_PATH```
+```export LD_LIBRARY_PATH=../bin-linux64/java/:$LD_LIBRARY_PATH```
 
 ### OSX
 
-```export LD_LIBRARY_PATH=.../bin-macos/java/:$LD_LIBRARY_PATH```
+```export LD_LIBRARY_PATH=../bin-macos/java/:$LD_LIBRARY_PATH```
 
 ### Windows
 

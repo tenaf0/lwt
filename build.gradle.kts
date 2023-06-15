@@ -17,6 +17,8 @@ dependencies {
 
     implementation("org.xerial:sqlite-jdbc:3.42.0.0")
     implementation("org.jsoup:jsoup:1.16.1")
+    implementation("com.alibaba:fastjson:2.0.32")
+    implementation("com.github.mizosoft.methanol:methanol:1.7.0")
     implementation("com.opencsv:opencsv:5.7.1")
 
     implementation("org.apache.opennlp:opennlp-tools:2.2.0")
@@ -28,7 +30,7 @@ dependencies {
 
 application {
     mainClass.set("hu.garaba.Main")
-    applicationDefaultJvmArgs = listOf("--enable-preview")
+    applicationDefaultJvmArgs = listOf("--enable-preview", "-XX:+UseZGC")
 }
 
 java {

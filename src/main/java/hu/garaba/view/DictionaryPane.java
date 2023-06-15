@@ -1,7 +1,7 @@
 package hu.garaba.view;
 
 import hu.garaba.model.CardEntry;
-import hu.garaba.model.DictionaryLookup;
+import hu.garaba.dictionary.DictionaryLookup;
 import hu.garaba.model.Model;
 import hu.garaba.model.SelectedWord;
 import hu.garaba.model.event.SelectedWordChange;
