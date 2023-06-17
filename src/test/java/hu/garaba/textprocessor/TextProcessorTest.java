@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class TextProcessorTest {
     @Test
     void test() {
-        List<Sentence> sentences = TextProcessor.process("Er fährt das Schild um.").toList();
+        List<Sentence> sentences = TextProcessor.process2("Er fährt das Schild um.").toList();
 
         assertEquals(new Sentence(List.of(
                 new TokenLemma("Er", "Er"),

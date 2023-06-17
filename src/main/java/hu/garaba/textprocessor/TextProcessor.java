@@ -28,11 +28,14 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class TextProcessor {
-    private static final Model model;
     private static final String PROCESS_URL = "http://lindat.mff.cuni.cz/services/udpipe/api/process";
 
-    static {
-        model = Model.load(TextProcessor.class.getResource("/model/german-hdt-ud-2.5-191206.udpipe").getFile());
+    private static class UDPipe1 {
+        private static final Model model;
+
+        static {
+            model = Model.load(TextProcessor.class.getResource("/model/german-hdt-ud-2.5-191206.udpipe").getFile());
+        }
     }
 
     public static void warmup() {
@@ -74,7 +77,7 @@ public class TextProcessor {
     }
 
     public static Stream<Sentence> process(String sentences) {
-        Pipeline pipeline = new Pipeline(model, "tokenize", Pipeline.getDEFAULT(), Pipeline.getDEFAULT(), "conllu");
+        Pipeline pipeline = new Pipeline(UDPipe1.model, "tokenize", Pipeline.getDEFAULT(), Pipeline.getDEFAULT(), "conllu");
 
         String processedText = pipeline.process(sentences);
 
