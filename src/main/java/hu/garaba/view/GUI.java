@@ -2,10 +2,12 @@ package hu.garaba.view;
 
 import hu.garaba.model.Model;
 import hu.garaba.model.event.StateChange;
+import hu.garaba.textprocessor.TextProcessor;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
+import javafx.util.StringConverter;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -59,6 +61,23 @@ public class GUI extends Pane {
         wordArea.setVisible(false);
         leftContainer.getChildren().add(wordArea);
 
+        modelChoice.setOnAction(e -> model.setModel(modelChoice.getValue()));
+        modelChoice.setConverter(new StringConverter<>() {
+            @Override
+            public String toString(TextProcessor.TextProcessorModel model) {
+                return model == null ? "" : model.displayName;
+            }
+
+            @Override
+            public TextProcessor.TextProcessorModel fromString(String name) {
+                return TextProcessor.TextProcessorModel.findByName(name);
+            }
+        });
+        for (var model : model.getAvailableModels()) {
+            modelChoice.getItems().add(model);
+        }
+        modelChoice.setValue(model.getModel());
+
         AnchorPane.setTopAnchor(wordArea, 0.0);
         AnchorPane.setLeftAnchor(wordArea, 0.0);
         AnchorPane.setRightAnchor(wordArea, 0.0);
@@ -70,6 +89,9 @@ public class GUI extends Pane {
 
     @FXML
     private Label stateDescription;
+
+    @FXML
+    private ChoiceBox<TextProcessor.TextProcessorModel> modelChoice;
 
     @FXML
     public void onOpenFile() {

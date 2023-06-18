@@ -11,6 +11,8 @@ import java.util.function.Consumer;
 public class PageReader {
     protected static final int PAGE_SIZE = 10; // number of sentences on each page
 
+    private TextProcessor.TextProcessorModel model;
+
     private BufferReader bufferReader;
     private long maxBufferNo;
 
@@ -25,7 +27,17 @@ public class PageReader {
         return thread;
     });
 
-    public PageReader(Path path) {
+    private PageReader(TextProcessor.TextProcessorModel model) {
+        if (model == null) {
+            throw new IllegalArgumentException("Model can't be null");
+        }
+
+        this.model = model;
+    }
+
+    public PageReader(TextProcessor.TextProcessorModel model, Path path) {
+        this(model);
+
         try {
             this.bufferReader = BufferReader.fromFile(path);
             this.maxBufferNo = bufferReader.maxBufferNo();
@@ -34,7 +46,9 @@ public class PageReader {
         }
     }
 
-    public PageReader(String text) {
+    public PageReader(TextProcessor.TextProcessorModel model, String text) {
+        this(model);
+
         this.maxBufferNo = 1;
         executorService.submit(() -> loadPages(0, text));
     }
@@ -48,6 +62,11 @@ public class PageReader {
             Page page = getPage(new BufferPage(0, 0), false);
             fn.accept(page);
         });
+    }
+
+    public void changeModel(TextProcessor.TextProcessorModel model) {
+        this.model = model;
+        bufferedPages.clear();
     }
 
     private void touchPage(BufferPage page, boolean shouldInitLoad) {
@@ -151,7 +170,7 @@ public class PageReader {
             return;
         }
 
-        Iterator<Sentence> iterator = TextProcessor.process(sentences.stream()).iterator();
+        Iterator<Sentence> iterator = TextProcessor.process(model, sentences.stream()).iterator();
         int i = 0;
         var list = new ArrayList<Sentence>();
         while (iterator.hasNext()) {

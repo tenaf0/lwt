@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ChoiceBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.ToolBar?>
 <?import javafx.scene.layout.AnchorPane?>
@@ -37,6 +39,8 @@
                           <items>
                             <Button mnemonicParsing="false" onAction="#prevPage" text="Previous" />
                               <Button mnemonicParsing="false" onAction="#nextPage" text="Next" />
+                              <Separator prefWidth="80.0" visible="false" />
+                              <ChoiceBox fx:id="modelChoice" prefWidth="150.0" />
                           </items>
                         </ToolBar>
                      </children>

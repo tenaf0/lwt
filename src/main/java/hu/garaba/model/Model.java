@@ -5,6 +5,7 @@ import hu.garaba.model.event.*;
 import hu.garaba.buffer.Page;
 import hu.garaba.buffer.PageReader;
 import hu.garaba.buffer.Sentence;
+import hu.garaba.textprocessor.TextProcessor;
 import javafx.application.Platform;
 import org.jetbrains.annotations.Nullable;
 
@@ -13,6 +14,7 @@ import java.nio.file.Path;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
@@ -23,6 +25,7 @@ public class Model {
     public Model() {
         try {
             this.knownWordDb = new KnownWordDb("known_word.db");
+            this.model = TextProcessor.getAvailableModels().stream().sorted().findFirst().get();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -32,6 +35,7 @@ public class Model {
     public enum ModelState {
         EMPTY, LOADING, LOADED
     }
+    private TextProcessor.TextProcessorModel model;
     private @Nullable PageReader pageReader;
     private PageReader.BufferPage currentPage = new PageReader.BufferPage(0, 0);
     private Page page;
@@ -42,13 +46,34 @@ public class Model {
     private final KnownWordDb knownWordDb;
     private final ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor();
 
+    public Set<TextProcessor.TextProcessorModel> getAvailableModels() {
+        return TextProcessor.getAvailableModels();
+    }
+
+    public TextProcessor.TextProcessorModel getModel() {
+        return model;
+    }
+
+    public void setModel(TextProcessor.TextProcessorModel model) {
+        this.model = model;
+
+        if (pageReader != null) {
+            pageReader.changeModel(model);
+
+            pageReader.submit(() -> {
+                Page page = pageReader.getPage(currentPage);
+                Platform.runLater(() -> setPage(page));
+            });
+        }
+    }
+
     public void openText(Path path) {
-        this.pageReader = new PageReader(path);
+        this.pageReader = new PageReader(model, path);
         initPageReader();
     }
 
     public void openText(String text) {
-        this.pageReader = new PageReader(text);
+        this.pageReader = new PageReader(model, text);
         initPageReader();
     }
 
