@@ -20,6 +20,7 @@ dependencies {
     implementation("com.alibaba:fastjson:2.0.32")
     implementation("com.github.mizosoft.methanol:methanol:1.7.0")
     implementation("com.opencsv:opencsv:5.7.1")
+    implementation("org.slf4j:slf4j-simple:2.0.7")
 
     implementation("org.apache.opennlp:opennlp-tools:2.2.0")
     implementation("cz.cuni.mff.ufal.udpipe:udpipe:1.1.0")
