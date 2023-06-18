@@ -1,5 +1,7 @@
 package hu.garaba.audio;
 
+import javafx.scene.media.AudioClip;
+import javafx.scene.media.Media;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -9,6 +11,8 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.WebSocket;
 import java.nio.ByteBuffer;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
@@ -82,6 +86,18 @@ public class EdgeTtsClient implements WebSocket.Listener {
 		}
 		catch (Exception e) {
 			logger.error("Error while synthesizing", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	public void playTTS(Language language, String text) {
+		byte[] data = synthesize(language, text);
+		try {
+			Path ttsFile = Files.write(Files.createTempFile("tts", ".mp3"), data);
+
+			AudioClip audioClip = new AudioClip("https://www.collinsdictionary.com/sounds/hwd_sounds/DE-W0049190.mp3");
+			audioClip.play();
+		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
 	}

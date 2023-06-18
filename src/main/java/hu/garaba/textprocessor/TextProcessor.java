@@ -34,12 +34,19 @@ public class TextProcessor {
         private static final Model model;
 
         static {
-            model = Model.load(TextProcessor.class.getResource("/model/german-hdt-ud-2.5-191206.udpipe").getFile());
+            try {
+                model = Model.load(TextProcessor.class.getResource("/model/german-hdt-ud-2.5-191206.udpipe").getFile());
+            } catch (Throwable e) {
+                System.err.println("Could not load dynamic library 'UDPipe1'. Please check the list of supported OSs.");
+                e.printStackTrace();
+                System.exit(1);
+                throw new RuntimeException(e);
+            }
         }
     }
 
     public static void warmup() {
-        TextProcessor.process2("""
+        TextProcessor.process("""
                 Wer reitet so spät durch Nacht und Wind?
                 Es ist der Vater mit seinem Kind;
                 Er hat den Knaben wohl in dem Arm,
@@ -85,7 +92,7 @@ public class TextProcessor {
     }
 
     public static Stream<Sentence> process(Stream<String> sentences) {
-        return process2(sentences.collect(Collectors.joining(" ")));
+        return process(sentences.collect(Collectors.joining(" ")));
     }
 
     private static Stream<Sentence> conlluParse(String processedText) {

@@ -42,7 +42,7 @@ java {
 
 javafx {
     version = "20"
-    modules = listOf("javafx.controls", "javafx.fxml")
+    modules = listOf("javafx.controls", "javafx.fxml", "javafx.media")
 }
 
 tasks.withType<JavaCompile> {

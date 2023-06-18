@@ -1,5 +1,7 @@
 package hu.garaba.view;
 
+import hu.garaba.audio.EdgeTtsClient;
+import hu.garaba.audio.Language;
 import hu.garaba.model.CardEntry;
 import hu.garaba.dictionary.DictionaryLookup;
 import hu.garaba.model.Model;
@@ -87,6 +89,13 @@ public class DictionaryPane extends AnchorPane {
     @FXML
     public void onSearch() {
         debouncer.debounce(() -> Platform.runLater(() -> model.selectWord(searchField.getText(), null)), 500);
+    }
+
+    @FXML
+    public void onPlayButton() {
+        if (word.get() != null) {
+            new EdgeTtsClient().playTTS(Language.GERMAN, word.get());
+        }
     }
 
     @FXML

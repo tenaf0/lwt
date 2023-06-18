@@ -35,7 +35,12 @@
                         <TextField fx:id="searchField" onKeyTyped="#onSearch" prefHeight="24.0" prefWidth="123.0" promptText="Search" />
                      </children>
                   </HBox>
-                  <Label fx:id="grammarCategoryLabel" />
+                  <HBox>
+                     <children>
+                        <Button mnemonicParsing="false" onAction="#onPlayButton" text="Play" />
+                        <Label fx:id="grammarCategoryLabel" />
+                     </children>
+                  </HBox>
                   <ScrollPane fitToWidth="true" hbarPolicy="NEVER" VBox.vgrow="ALWAYS">
                      <content>
                         <TextFlow fx:id="dictionaryText">
