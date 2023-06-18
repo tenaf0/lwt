@@ -46,7 +46,7 @@ public class TextProcessor {
     }
 
     public static void warmup() {
-        TextProcessor.process("""
+        TextProcessor.process2("""
                 Wer reitet so spät durch Nacht und Wind?
                 Es ist der Vater mit seinem Kind;
                 Er hat den Knaben wohl in dem Arm,
@@ -92,7 +92,7 @@ public class TextProcessor {
     }
 
     public static Stream<Sentence> process(Stream<String> sentences) {
-        return process(sentences.collect(Collectors.joining(" ")));
+        return process2(sentences.collect(Collectors.joining(" ")));
     }
 
     private static Stream<Sentence> conlluParse(String processedText) {
