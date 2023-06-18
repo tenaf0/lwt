@@ -11,7 +11,7 @@ import java.util.function.Consumer;
 public class PageReader {
     protected static final int PAGE_SIZE = 10; // number of sentences on each page
 
-    private final BufferReader bufferReader;
+    private BufferReader bufferReader;
     private long maxBufferNo;
 
     public record BufferPage(int bufferNo, int pageNo) {}
@@ -34,8 +34,15 @@ public class PageReader {
         }
     }
 
+    public PageReader(String text) {
+        this.maxBufferNo = 1;
+        executorService.submit(() -> loadPages(0, text));
+    }
+
     public void init(Consumer<Page> fn) {
-        executorService.submit(() -> loadPages(0));
+        if (bufferReader != null) {
+            executorService.submit(() -> loadPages(0));
+        }
 
         executorService.submit(() -> {
             Page page = getPage(new BufferPage(0, 0), false);
@@ -96,10 +103,12 @@ public class PageReader {
         }
 
         BufferPage finalPage = page;
-        executorService.submit(() -> {
-            loadPages(finalPage.bufferNo + 1);
-            loadPages(finalPage.bufferNo + 2);
-        });
+        if (bufferReader != null) {
+            executorService.submit(() -> {
+                loadPages(finalPage.bufferNo + 1);
+                loadPages(finalPage.bufferNo + 2);
+            });
+        }
 
         return page;
     }
@@ -130,6 +139,10 @@ public class PageReader {
 
         String bufferText = bufferReader.getBuffer(bufferNo);
 
+        loadPages(bufferNo, bufferText);
+    }
+
+    private void loadPages(int bufferNo, String bufferText) {
         List<String> sentences = TextProcessor.sentences(bufferText);
 
         CopyOnWriteArrayList<Page> bufferPages = new CopyOnWriteArrayList<>();

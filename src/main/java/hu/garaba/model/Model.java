@@ -44,6 +44,15 @@ public class Model {
 
     public void openText(Path path) {
         this.pageReader = new PageReader(path);
+        initPageReader();
+    }
+
+    public void openText(String text) {
+        this.pageReader = new PageReader(text);
+        initPageReader();
+    }
+
+    private void initPageReader() {
         this.currentPage = new PageReader.BufferPage(0, 0);
         sendEvent(new StateChange(ModelState.LOADING));
         pageReader.init(p -> {
