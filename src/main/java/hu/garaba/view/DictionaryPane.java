@@ -93,9 +93,7 @@ public class DictionaryPane extends AnchorPane {
 
     @FXML
     public void onPlayButton() {
-        if (word.get() != null) {
-            new EdgeTtsClient().playTTS(Language.GERMAN, word.get());
-        }
+        model.playAudio();
     }
 
     @FXML

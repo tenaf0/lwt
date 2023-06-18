@@ -1,5 +1,7 @@
 package hu.garaba.model;
 
+import hu.garaba.audio.EdgeTtsClient;
+import hu.garaba.audio.Language;
 import hu.garaba.dictionary.DictionaryLookup;
 import hu.garaba.model.event.*;
 import hu.garaba.buffer.Page;
@@ -137,6 +139,14 @@ public class Model {
 
     public void exportRows(Path path) throws IOException {
         AnkiExport.export(knownWordDb.fetchLearningWords(), path);
+    }
+
+    public void playAudio() {
+        if (selectedWord != null) {
+            new Thread(() -> {
+                new EdgeTtsClient().playTTS(Language.GERMAN, selectedWord.lemma());
+            }).start();
+        }
     }
 
     public void close() {

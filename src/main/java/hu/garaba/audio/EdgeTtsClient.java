@@ -1,7 +1,6 @@
 package hu.garaba.audio;
 
 import javafx.scene.media.AudioClip;
-import javafx.scene.media.Media;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,10 +19,7 @@ import java.util.TimeZone;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.CountDownLatch;
 
-import static hu.garaba.audio.Language.ENGLISH;
-import static hu.garaba.audio.Language.GERMAN;
-import static hu.garaba.audio.Language.HUNGARIAN;
-import static hu.garaba.audio.Language.SPANISH;
+import static hu.garaba.audio.Language.*;
 
 
 public class EdgeTtsClient implements WebSocket.Listener {
@@ -94,8 +90,10 @@ public class EdgeTtsClient implements WebSocket.Listener {
 		byte[] data = synthesize(language, text);
 		try {
 			Path ttsFile = Files.write(Files.createTempFile("tts", ".mp3"), data);
+			System.out.println("File written to: " + ttsFile);
 
-			AudioClip audioClip = new AudioClip("https://www.collinsdictionary.com/sounds/hwd_sounds/DE-W0049190.mp3");
+			String source = ttsFile.toUri().toString();
+			AudioClip audioClip = new AudioClip(source);
 			audioClip.play();
 		} catch (IOException e) {
 			throw new RuntimeException(e);
