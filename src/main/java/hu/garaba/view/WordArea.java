@@ -66,8 +66,8 @@ public class WordArea extends AnchorPane {
         for (int s = 0; s < sentences.size(); s++) {
             List<WordNode> sentence = new ArrayList<>();
             labels.add(sentence);
-            if (sentences.get(s).tokens().size() == 0) {
-                new Text("\n");
+            if (sentences.get(s).tokens().size() == 0 && this.textFlow.getChildren().size() > 0) {
+                this.textFlow.getChildren().add(new Text("\n"));
             }
             for (int i = 0; i < sentences.get(s).tokens().size(); i++) {
                 var token = sentences.get(s).tokens().get(i);

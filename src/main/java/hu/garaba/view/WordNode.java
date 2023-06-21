@@ -19,10 +19,10 @@ public class WordNode extends Region {
 
         setState(Model.WordState.UNKNOWN);
         textLabel.setFont(new Font(14.0));
-        textLabel.setPadding(new Insets(0.2, 0.4, 0.2, 0.4));
+        textLabel.setPadding(new Insets(0.2, tokenLemma.spaceAfter() ? 0.35 : 0, 0.2, 0.35));
         textLabel.setBorder(new Border(new BorderStroke(Color.TRANSPARENT, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderStroke.DEFAULT_WIDTHS)));
 
-        setPadding(new Insets(0.2, 2.8, 0.2, 2.8));
+        setPadding(new Insets(0.2, tokenLemma.spaceAfter() ? 3.7 : 0, 0.2, 1));
 
     }
 

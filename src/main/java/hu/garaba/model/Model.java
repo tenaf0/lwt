@@ -108,7 +108,7 @@ public class Model {
     }
 
     public void selectWord(String lemma, @Nullable Sentence sentence) {
-        List<TokenLemma> word = List.of(new TokenLemma(lemma, lemma));
+        List<TokenLemma> word = List.of(new TokenLemma(lemma, lemma, false));
         selectedWord = new SelectedWord(word, null, sentence);
         sendEvent(new SelectedWordChange(selectedWord));
 

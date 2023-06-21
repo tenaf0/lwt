@@ -4,6 +4,7 @@ import hu.garaba.model.TokenLemma;
 import hu.garaba.model.Word;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public record Sentence(List<TokenLemma> tokens, List<Word> words) {
     public boolean isPartOfWord(int tokenIndex) {
@@ -12,5 +13,12 @@ public record Sentence(List<TokenLemma> tokens, List<Word> words) {
 
     public Word findRelated(int tokenIndex) {
         return words.stream().filter(w -> w.tokens().contains(tokenIndex)).findAny().orElse(new Word(List.of(tokenIndex)));
+    }
+
+    public String toText() {
+        return tokens()
+                .stream()
+                .map(tokenLemma -> tokenLemma.token() + (tokenLemma.spaceAfter() ? " " : ""))
+                .collect(Collectors.joining());
     }
 }

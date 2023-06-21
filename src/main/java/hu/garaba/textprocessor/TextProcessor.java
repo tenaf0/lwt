@@ -84,7 +84,13 @@ public class TextProcessor {
     }
 
     public static Stream<Sentence> process(TextProcessorModel model, Stream<String> sentences) {
-        return process(model, sentences.collect(Collectors.joining(" ")));
+        return sentences
+                .flatMap(s -> {
+                    if (s == null) {
+                        return Stream.of(new Sentence(List.of(), List.of()));
+                    }
+                    return process(model, s);
+                });
     }
 
 
@@ -138,7 +144,7 @@ public class TextProcessor {
 
             while ((conlluSentence = conlluStream.read()) != null) {
                 List<TokenLemma> tokenLemmas = conlluSentence.getWordLines().stream()
-                        .map(wl -> new TokenLemma(wl.getForm(), wl.getLemma()))
+                        .map(wl -> new TokenLemma(wl.getForm(), wl.getLemma(), !wl.getMisc().contains("SpaceAfter=No")))
                         .toList();
                 List<Word> words = conlluSentence.getWordLines().stream()
                         .filter(wl -> wl.getDeprel().equals("compound:prt"))
@@ -161,7 +167,7 @@ public class TextProcessor {
 
             List<String> sentences = new ArrayList<>();
 
-            String[] paragraphs = text.split("\n{2,}");
+            String[] paragraphs = text.split("\n{2}");
             for (var p : paragraphs) {
                 String[] strings = detector.sentDetect(p);
                 sentences.addAll(Arrays.asList(strings));

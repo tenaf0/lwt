@@ -50,10 +50,7 @@ public class EditCardBox {
 
                     wordField.setText(selectedWord.lemma());
                     if (selectedWord.sentence() != null) {
-                        exampleSentenceField.setText(selectedWord.sentence().tokens()
-                                .stream()
-                                .map(TokenLemma::token)
-                                .collect(Collectors.joining(" ")));
+                        exampleSentenceField.setText(selectedWord.sentence().toText());
                     }
 
                     if (selectedWord.dictionaryEntry() == null || selectedWord.dictionaryEntry().grammatik() == null)
