@@ -137,10 +137,6 @@ public class GUI extends Pane {
 
     @FXML
     public void onExport() {
-        try {
-            model.exportRows(exportPathSupplier.get());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        model.exportRows(exportPathSupplier.get());
     }
 }

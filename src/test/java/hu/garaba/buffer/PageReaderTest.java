@@ -1,6 +1,7 @@
 package hu.garaba.buffer;
 
 import hu.garaba.model.TokenLemma;
+import hu.garaba.textprocessor.TextProcessor;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Path;
@@ -14,7 +15,7 @@ class PageReaderTest {
         Path book = Path.of(BufferReader.class.getResource("/kafka_prozess.txt").getFile());
 
         long l = System.currentTimeMillis();
-        PageReader pageReader = new PageReader(book);
+        PageReader pageReader = new PageReader(TextProcessor.TextProcessorModel.UDPIPE_1, book);
 
         Semaphore semaphore = new Semaphore(1);
         try {
@@ -38,6 +39,6 @@ class PageReaderTest {
         }
 
         page = pageReader.getPage(new PageReader.BufferPage(0, 0));
-        assertEquals(new TokenLemma("haben", "haben"), page.sentences().get(0).tokens().get(6));
+        assertEquals(new TokenLemma("haben", "haben", false), page.sentences().get(0).tokens().get(6));
     }
 }

@@ -98,7 +98,7 @@ public class EditCardBox {
         String note = noteField.getText();
         String exampleSentence = exampleSentenceField.getText();
 
-        return new CardEntry(emptyTextToNull(prefix), word, emptyTextToNull(postfix),
+        return new CardEntry(null, emptyTextToNull(prefix), word, emptyTextToNull(postfix),
                 emptyTextToNull(meaning), emptyTextToNull(note), emptyTextToNull(exampleSentence));
     }
 

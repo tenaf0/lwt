@@ -1,7 +1,8 @@
-package hu.garaba.model;
+package hu.garaba.export;
 
 import com.opencsv.CSVWriterBuilder;
 import com.opencsv.ICSVWriter;
+import hu.garaba.model.CardEntry;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -17,12 +18,12 @@ public class AnkiExport {
         writer.write("#separator:Semicolon\n");
         writer.write("#html:true\n");
         writer.write("#tags:german,vocabulary\n");
-        writer.write("#columns:word;prefix;postfix;meaning;note;exampleSentence\n");
+        writer.write("#columns:id;word;prefix;postfix;meaning;note;exampleSentence\n");
 
         try (ICSVWriter csvWriter = new CSVWriterBuilder(writer)
                 .withSeparator(';')
                 .build()) {
-            Stream<String[]> rowStream = cardEntries.stream().map(e -> new String[]{e.word(), e.prefix(), e.postfix(), e.meaning(), e.note(), e.exampleSentence()});
+            Stream<String[]> rowStream = cardEntries.stream().map(e -> new String[]{Long.toString(e.id()), e.word(), e.prefix(), e.postfix(), e.meaning(), e.note(), e.exampleSentence()});
             csvWriter.writeAll(rowStream::iterator);
         }
     }

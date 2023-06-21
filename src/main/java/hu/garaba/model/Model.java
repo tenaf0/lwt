@@ -1,12 +1,14 @@
 package hu.garaba.model;
 
-import hu.garaba.dictionary.DictionaryLookup;
-import hu.garaba.model.event.*;
 import hu.garaba.buffer.Page;
 import hu.garaba.buffer.PageReader;
 import hu.garaba.buffer.Sentence;
+import hu.garaba.dictionary.DictionaryLookup;
+import hu.garaba.export.AnkiExport;
+import hu.garaba.model.event.*;
 import hu.garaba.textprocessor.TextProcessor;
 import javafx.application.Platform;
+import javafx.scene.control.Alert;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
@@ -169,8 +171,20 @@ public class Model {
         sendEvent(new KnownChange());
     }
 
-    public void exportRows(Path path) throws IOException {
-        AnkiExport.export(knownWordDb.fetchLearningWords(), path);
+    public void exportRows(Path path) {
+        executorService.submit(() -> {
+            try {
+                AnkiExport.export(knownWordDb.fetchLearningWords(), path);
+                Platform.runLater(() -> {
+                    new Alert(Alert.AlertType.INFORMATION, "Export finished successfully!").showAndWait();
+                });
+            } catch (IOException e) {
+                Platform.runLater(() -> {
+                    new Alert(Alert.AlertType.ERROR, "Unexpected error happened during export: " + e.getMessage()).showAndWait();
+                });
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     public void close() {
