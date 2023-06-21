@@ -3,17 +3,17 @@ package hu.garaba.view;
 import hu.garaba.model.CardEntry;
 import hu.garaba.model.Model;
 import hu.garaba.model.SelectedWord;
+import hu.garaba.model.event.SelectedWordChange;
 import javafx.fxml.FXML;
+import javafx.scene.control.IndexRange;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import hu.garaba.model.TokenLemma;
-import hu.garaba.model.event.SelectedWordChange;
+import javafx.scene.input.KeyCode;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 public class EditCardBox {
 
@@ -70,6 +70,16 @@ public class EditCardBox {
                 }
                 default -> {}
             }
+
+            exampleSentenceField.setOnKeyReleased(k -> {
+                IndexRange selection = exampleSentenceField.getSelection();
+                if (k.isControlDown() && k.getCode() == KeyCode.B && selection.getLength() > 0) {
+                    String text = exampleSentenceField.getText();
+                    exampleSentenceField.setText(text.substring(0, selection.getStart())
+                            + "<b>" + text.substring(selection.getStart(), selection.getEnd()) + "</b>"
+                    + text.substring(selection.getEnd()));
+                }
+            });
         });
 
         wordField.textProperty().addListener((l, o, n) -> {

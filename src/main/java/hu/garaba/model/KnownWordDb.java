@@ -74,7 +74,7 @@ public class KnownWordDb implements Closeable {
     }
 
     public List<CardEntry> fetchLearningWords() {
-        try (var st = connection.prepareStatement("SELECT id, prefix, word, postfix, meaning, note, example_sentence, datetime FROM word WHERE status = 'LEARNING'")) {
+        try (var st = connection.prepareStatement("SELECT id, prefix, word, postfix, meaning, note, example_sentence, datetime FROM word WHERE status = 'LEARNING' ORDER BY id")) {
             ResultSet rs = st.executeQuery();
 
             List<CardEntry> result = new ArrayList<>();
