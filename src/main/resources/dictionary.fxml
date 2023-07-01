@@ -52,13 +52,9 @@
             </VBox>
             <Accordion VBox.vgrow="SOMETIMES">
                <panes>
-                  <TitledPane animated="false" prefHeight="40.0" text="Edit card">
+                  <TitledPane animated="false" cacheShape="false" prefHeight="40.0" text="Edit card">
                      <content>
-                        <AnchorPane minHeight="0.0" minWidth="0.0">
-                           <children>
-                              <fx:include fx:id="editCardBox" source="edit_card.fxml" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
-                           </children>
-                        </AnchorPane>
+                        <fx:include source="edit_card.fxml" />
                      </content>
                   </TitledPane>
                </panes>

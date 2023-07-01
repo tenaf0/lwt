@@ -1,6 +1,8 @@
 package hu.garaba.buffer;
 
+import hu.garaba.textprocessor.Sentence;
 import hu.garaba.textprocessor.TextProcessor;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -13,7 +15,7 @@ public class PageReader {
 
     private TextProcessor.TextProcessorModel model;
 
-    private BufferReader bufferReader;
+    private @Nullable BufferReader bufferReader;
     private long maxBufferNo;
 
     public record BufferPage(int bufferNo, int pageNo) {}
@@ -64,9 +66,11 @@ public class PageReader {
         });
     }
 
-    public void changeModel(TextProcessor.TextProcessorModel model) {
+    public void changeModel(TextProcessor.TextProcessorModel model, BufferPage page) {
         this.model = model;
         bufferedPages.clear();
+
+        executorService.submit(() -> getPage(page));
     }
 
     private void touchPage(BufferPage page, boolean shouldInitLoad) {

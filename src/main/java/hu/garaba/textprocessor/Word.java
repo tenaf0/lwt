@@ -1,4 +1,6 @@
-package hu.garaba.model;
+package hu.garaba.textprocessor;
+
+import hu.garaba.textprocessor.TokenLemma;
 
 import java.util.List;
 import java.util.stream.Collectors;

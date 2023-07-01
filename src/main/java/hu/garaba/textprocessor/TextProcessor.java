@@ -5,9 +5,6 @@ import com.github.mizosoft.methanol.Methanol;
 import com.github.mizosoft.methanol.MultipartBodyPublisher;
 import cz.cuni.mff.ufal.udpipe.Model;
 import cz.cuni.mff.ufal.udpipe.Pipeline;
-import hu.garaba.buffer.Sentence;
-import hu.garaba.model.TokenLemma;
-import hu.garaba.model.Word;
 import opennlp.tools.formats.conllu.ConlluSentence;
 import opennlp.tools.formats.conllu.ConlluStream;
 import opennlp.tools.sentdetect.SentenceDetectorME;
@@ -21,7 +18,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class TextProcessor {

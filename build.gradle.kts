@@ -1,6 +1,8 @@
 plugins {
     id("java")
+    id("groovy")
     id("application")
+    id("org.checkerframework") version "0.6.26"
     id("org.openjfx.javafxplugin") version "0.0.13"
     id("dev.hydraulic.conveyor") version "1.5"
 }
@@ -25,6 +27,8 @@ dependencies {
     implementation("cz.cuni.mff.ufal.udpipe:udpipe:1.1.0")
 
     testImplementation(platform("org.junit:junit-bom:5.9.1"))
+    testImplementation(platform("org.spockframework:spock-bom:2.3-groovy-4.0"))
+    testImplementation("org.spockframework:spock-core")
     testImplementation("org.junit.jupiter:junit-jupiter")
 }
 
@@ -42,6 +46,11 @@ java {
 javafx {
     version = "20"
     modules = listOf("javafx.controls", "javafx.fxml")
+}
+
+checkerFramework {
+    checkers = listOf("org.checkerframework.checker.nullness.NullnessChecker")
+    extraJavacArgs = listOf("-AonlyDefs=hu.garaba.model2.*")
 }
 
 tasks.withType<JavaCompile> {

@@ -23,7 +23,7 @@ public class AnkiExport {
         try (ICSVWriter csvWriter = new CSVWriterBuilder(writer)
                 .withSeparator(';')
                 .build()) {
-            Stream<String[]> rowStream = cardEntries.stream().map(e -> new String[]{Long.toString(e.id()), e.word(), e.prefix(), e.postfix(), e.meaning(), e.note(), e.exampleSentence()});
+            Stream<String[]> rowStream = cardEntries.stream().map(e -> new String[]{e.id() != null ? Long.toString(e.id()) : "", e.word(), e.prefix(), e.postfix(), e.meaning(), e.note(), e.exampleSentence()});
             csvWriter.writeAll(rowStream::iterator);
         }
     }

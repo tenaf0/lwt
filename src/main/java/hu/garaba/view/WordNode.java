@@ -6,7 +6,7 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import hu.garaba.model.Model;
-import hu.garaba.model.TokenLemma;
+import hu.garaba.textprocessor.TokenLemma;
 
 public class WordNode extends Region {
     private Model.WordState state;

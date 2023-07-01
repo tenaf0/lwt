@@ -1,8 +1,5 @@
 package hu.garaba.textprocessor;
 
-import hu.garaba.model.TokenLemma;
-import hu.garaba.model.Word;
-import hu.garaba.buffer.Sentence;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

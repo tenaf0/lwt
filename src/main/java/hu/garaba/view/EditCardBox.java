@@ -4,6 +4,7 @@ import hu.garaba.model.CardEntry;
 import hu.garaba.model.Model;
 import hu.garaba.model.SelectedWord;
 import hu.garaba.model.event.SelectedWordChange;
+import hu.garaba.model2.ReadModel;
 import javafx.fxml.FXML;
 import javafx.scene.control.IndexRange;
 import javafx.scene.control.TextArea;
@@ -17,9 +18,9 @@ import java.util.regex.Pattern;
 
 public class EditCardBox {
 
-    private final Model model;
+    private final ReadModel model;
 
-    public EditCardBox(Model model) {
+    public EditCardBox(ReadModel model) {
         this.model = model;
     }
 
@@ -44,6 +45,7 @@ public class EditCardBox {
     @FXML
     public void initialize() {
         model.subscribe(e -> {
+/*
             switch (e) {
                 case SelectedWordChange(SelectedWord selectedWord) -> {
                     reset();
@@ -70,6 +72,7 @@ public class EditCardBox {
                 }
                 default -> {}
             }
+*/
 
             exampleSentenceField.setOnKeyReleased(k -> {
                 IndexRange selection = exampleSentenceField.getSelection();
@@ -83,11 +86,11 @@ public class EditCardBox {
         });
 
         wordField.textProperty().addListener((l, o, n) -> {
-            if (Objects.requireNonNull(model.isKnown(n)) == Model.WordState.UNKNOWN) {
+            /*if (Objects.requireNonNull(model.isKnown(n)) == Model.WordState.UNKNOWN) {
                 wordField.getStyleClass().remove("alreadyEntered");
             } else {
                 wordField.getStyleClass().add("alreadyEntered");
-            }
+            }*/
         });
     }
 

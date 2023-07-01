@@ -1,4 +1,4 @@
-package hu.garaba.model;
+package hu.garaba.textprocessor;
 
 import org.jetbrains.annotations.Nullable;
 

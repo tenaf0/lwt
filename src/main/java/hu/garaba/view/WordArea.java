@@ -4,7 +4,8 @@ import hu.garaba.model.Model;
 import hu.garaba.model.TokenCoordinate;
 import hu.garaba.model.event.*;
 import hu.garaba.buffer.Page;
-import hu.garaba.buffer.Sentence;
+import hu.garaba.model2.ReadModel;
+import hu.garaba.textprocessor.Sentence;
 import javafx.geometry.Insets;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.AnchorPane;
@@ -15,14 +16,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class WordArea extends AnchorPane {
-    private final Model model;
+    private final ReadModel model;
     private final TextFlow textFlow;
 
     private final List<List<WordNode>> labels = new ArrayList<>();
 
-    public WordArea(Model model) {
+    public WordArea(ReadModel model) {
         this.model = model;
-        model.subscribe(this::onChange);
+//        model.subscribe(this::onChange);
 
         getStylesheets().add("style/word-node.css");
 
@@ -79,7 +80,7 @@ public class WordArea extends AnchorPane {
                     if (e.isShiftDown()) {
 //                    model.toggleToken(finalI);
                     } else {
-                        model.selectWord(new TokenCoordinate(finalS, finalI));
+//                        model.selectWord(new TokenCoordinate(finalS, finalI));
                     }
                 });
                 this.textFlow.getChildren().add(label);
@@ -94,7 +95,7 @@ public class WordArea extends AnchorPane {
         for (int s = 0; s < labels.size(); s++) {
             for (int i = 0; i < labels.get(s).size(); i++) {
                 var label = labels.get(s).get(i);
-                label.setState(model.isKnown(new TokenCoordinate(s, i)));
+//                label.setState(model.isKnown(new TokenCoordinate(s, i)));
             }
         }
     }

@@ -2,11 +2,13 @@ package hu.garaba.model;
 
 import hu.garaba.buffer.Page;
 import hu.garaba.buffer.PageReader;
-import hu.garaba.buffer.Sentence;
+import hu.garaba.textprocessor.Sentence;
 import hu.garaba.dictionary.DictionaryLookup;
 import hu.garaba.export.AnkiExport;
 import hu.garaba.model.event.*;
 import hu.garaba.textprocessor.TextProcessor;
+import hu.garaba.textprocessor.TokenLemma;
+import hu.garaba.textprocessor.Word;
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import org.jetbrains.annotations.Nullable;
@@ -60,7 +62,7 @@ public class Model {
         this.model = model;
 
         if (pageReader != null) {
-            pageReader.changeModel(model);
+            pageReader.changeModel(model, currentPage);
 
             pageReader.submit(() -> {
                 Page page = pageReader.getPage(currentPage);

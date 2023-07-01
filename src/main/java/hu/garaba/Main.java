@@ -1,6 +1,7 @@
 package hu.garaba;
 
 import hu.garaba.model.Model;
+import hu.garaba.model2.ReadModel;
 import hu.garaba.textprocessor.TextProcessor;
 import hu.garaba.view.DictionaryPane;
 import hu.garaba.view.EditCardBox;
@@ -15,7 +16,7 @@ import javafx.stage.Stage;
 import java.io.File;
 
 public class Main extends Application {
-    private final Model model = new Model();
+    private final ReadModel model = new ReadModel();
 
     public static void main(String[] args) {
         Thread thread = new Thread(TextProcessor::warmup);
@@ -52,6 +53,6 @@ public class Main extends Application {
 
     @Override
     public void stop() {
-        model.close();
+//        model.close();
     }
 }

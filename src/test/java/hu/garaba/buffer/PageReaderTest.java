@@ -1,6 +1,6 @@
 package hu.garaba.buffer;
 
-import hu.garaba.model.TokenLemma;
+import hu.garaba.textprocessor.TokenLemma;
 import hu.garaba.textprocessor.TextProcessor;
 import org.junit.jupiter.api.Test;
 
