@@ -2,6 +2,8 @@ package hu.garaba.model;
 
 import hu.garaba.buffer.Page;
 import hu.garaba.buffer.PageReader;
+import hu.garaba.db.KnownWordDb;
+import hu.garaba.db.WordState;
 import hu.garaba.textprocessor.Sentence;
 import hu.garaba.dictionary.DictionaryLookup;
 import hu.garaba.export.AnkiExport;
@@ -145,9 +147,6 @@ public class Model {
         }
     }
 
-    public enum WordState {
-        KNOWN, LEARNING, UNKNOWN, IGNORED
-    }
     public WordState isKnown(TokenCoordinate coord) {
         Sentence sentence = page.sentences().get(coord.sentenceNo());
         Word word = sentence.findRelated(coord.tokenNo());
@@ -168,7 +167,7 @@ public class Model {
     }
 
 
-    public void addWord(CardEntry cardEntry, Model.WordState state) {
+    public void addWord(CardEntry cardEntry, WordState state) {
         knownWordDb.addWord(cardEntry, state);
         sendEvent(new KnownChange());
     }

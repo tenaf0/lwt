@@ -1,4 +1,6 @@
-package hu.garaba.model;
+package hu.garaba.db;
+
+import hu.garaba.model.CardEntry;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -37,7 +39,7 @@ public class KnownWordDb implements Closeable {
         });
     }
 
-    public Model.WordState isKnown(String lemma) {
+    public WordState isKnown(String lemma) {
         try (var st = connection.prepareStatement("SELECT status FROM word WHERE LOWER(REPLACE(word, '|', '')) = LOWER(?)")) {
             Pattern startPattern = Pattern.compile("^\\.{2,}");
             lemma = startPattern.matcher(lemma).replaceAll("");
@@ -49,16 +51,16 @@ public class KnownWordDb implements Closeable {
             ResultSet resultSet = st.executeQuery();
 
             if (resultSet.next()) {
-                return Model.WordState.valueOf(resultSet.getString(1));
+                return WordState.valueOf(resultSet.getString(1));
             } else {
-                return Model.WordState.UNKNOWN;
+                return WordState.UNKNOWN;
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public void addWord(CardEntry row, Model.WordState state) {
+    public void addWord(CardEntry row, WordState state) {
         try (var st = connection.prepareStatement("INSERT INTO word (prefix, word, postfix, meaning, note, example_sentence, status, datetime) VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)")) {
             st.setString(1, row.prefix());
             st.setString(2, row.word());

@@ -10,12 +10,12 @@ import java.util.concurrent.Executors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class BufferReaderTest {
+class FileBufferReaderTest {
     @Test
     void bufferSeparationTest() throws IOException {
-        Path book = Path.of(BufferReader.class.getResource("/kafka_prozess.txt").getFile());
+        Path book = Path.of(FileBufferReader.class.getResource("/kafka_prozess.txt").getFile());
 
-        var bufferReader = BufferReader.fromFile(book);
+        var bufferReader = FileBufferReader.fromFile(book);
 
         try (ExecutorService executorService = Executors.newFixedThreadPool(4)) {
             for (int i = 0; i < bufferReader.maxBufferNo(); i++) {

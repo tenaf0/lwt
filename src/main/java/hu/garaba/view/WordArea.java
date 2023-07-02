@@ -1,11 +1,13 @@
 package hu.garaba.view;
 
-import hu.garaba.model.Model;
-import hu.garaba.model.TokenCoordinate;
-import hu.garaba.model.event.*;
 import hu.garaba.buffer.Page;
+import hu.garaba.db.WordState;
+import hu.garaba.model.TokenCoordinate;
 import hu.garaba.model2.ReadModel;
+import hu.garaba.model2.event.*;
 import hu.garaba.textprocessor.Sentence;
+import hu.garaba.util.Pair;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.AnchorPane;
@@ -23,7 +25,7 @@ public class WordArea extends AnchorPane {
 
     public WordArea(ReadModel model) {
         this.model = model;
-//        model.subscribe(this::onChange);
+        model.subscribe(this::onChange);
 
         getStylesheets().add("style/word-node.css");
 
@@ -48,15 +50,34 @@ public class WordArea extends AnchorPane {
 
     private void onChange(ModelEvent change) {
         switch (change) {
-            case PageChange(var page) -> onPageChange(page);
-            case SelectedWordChange dc -> {}
-            case KnownChange k -> onKnownChange();
-            case TokenChange(var tokenList) -> {
-                labels.forEach(s -> s.forEach(WordNode::deselect));
-                tokenList.forEach(s -> labels.get(s.sentenceNo()).get(s.tokenNo()).select());
+            case PageChange(var page) -> Platform.runLater(() -> onPageChange(page));
+            case WordStateChange(var changes) -> Platform.runLater(() -> onKnownChange(changes));
+            case JoinedEvent(var list) when isPageAndWordStateChange(list) -> Platform.runLater(() -> {
+                onPageChange(((PageChange) list.get(0)).page());
+                onKnownChange(((WordStateChange) list.get(1)).wordStateChanges());
+            });
+            case JoinedEvent(var list) -> list.forEach(this::onChange);
+            case SelectionChange(var oldTokens, var newTokens) -> {
+                Platform.runLater(() -> {
+                    for (var old : oldTokens) {
+                        labels.get(old.sentenceNo()).get(old.tokenNo()).deselect();
+                    }
+                    for (var n : newTokens) {
+                        labels.get(n.sentenceNo()).get(n.tokenNo()).select();
+                    }
+                });
             }
-            case StateChange stateChange -> {}
+//            case KnownChange k -> onKnownChange();
+//            case TokenChange(var tokenList) -> {
+//                labels.forEach(s -> s.forEach(WordNode::deselect));
+//                tokenList.forEach(s -> labels.get(s.sentenceNo()).get(s.tokenNo()).select());
+//            }
+            default -> {}
         }
+    }
+
+    private boolean isPageAndWordStateChange(List<ModelEvent> events) {
+        return events.size() == 2 && events.get(0) instanceof PageChange && events.get(1) instanceof WordStateChange;
     }
 
     private void onPageChange(Page page) {
@@ -80,23 +101,19 @@ public class WordArea extends AnchorPane {
                     if (e.isShiftDown()) {
 //                    model.toggleToken(finalI);
                     } else {
-//                        model.selectWord(new TokenCoordinate(finalS, finalI));
+                        model.selectWord(new TokenCoordinate(finalS, finalI));
                     }
                 });
                 this.textFlow.getChildren().add(label);
                 sentence.add(label);
             }
         }
-
-        onKnownChange();
     }
 
-    private void onKnownChange() {
-        for (int s = 0; s < labels.size(); s++) {
-            for (int i = 0; i < labels.get(s).size(); i++) {
-                var label = labels.get(s).get(i);
-//                label.setState(model.isKnown(new TokenCoordinate(s, i)));
-            }
+    private void onKnownChange(List<Pair<TokenCoordinate, WordState>> changes) {
+        for (var c : changes) {
+            WordNode label = labels.get(c.fst().sentenceNo()).get(c.fst().tokenNo());
+            label.setState(c.snd());
         }
     }
 }

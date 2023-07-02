@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class PageReaderTest {
     @Test
     void firstPageReadTest() {
-        Path book = Path.of(BufferReader.class.getResource("/kafka_prozess.txt").getFile());
+        Path book = Path.of(FileBufferReader.class.getResource("/kafka_prozess.txt").getFile());
 
         long l = System.currentTimeMillis();
         PageReader pageReader = new PageReader(TextProcessor.TextProcessorModel.UDPIPE_1, book);

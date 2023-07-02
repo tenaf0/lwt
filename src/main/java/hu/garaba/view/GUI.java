@@ -9,7 +9,6 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.util.StringConverter;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -17,7 +16,6 @@ import java.util.function.Supplier;
 public class GUI extends Pane {
 
     private final ReadModel model;
-    private ReadModel.ReadModelState modelState = ReadModel.ReadModelState.UNLOADED;
     private final WordArea wordArea;
 
     private final Supplier<Path> openPathSupplier;
@@ -32,14 +30,6 @@ public class GUI extends Pane {
 
         model.subscribe(e -> {
             if (e instanceof StateChange(var newState)) {
-                ReadModel.ReadModelState prevState = modelState;
-                modelState = newState;
-
-                if (prevState == newState) {
-                    return;
-                }
-
-//                leftContainer.getChildren().clear();
                 if (newState == ReadModel.ReadModelState.UNLOADED) {
                     stateDescription.setVisible(true);
                     wordArea.setVisible(false);
@@ -127,12 +117,12 @@ public class GUI extends Pane {
 
     @FXML
     public void nextPage() {
-//        model.changePage(true);
+        model.nextPage();
     }
 
     @FXML
     public void prevPage() {
-//        model.changePage(false);
+        model.prevPage();
     }
 
     @FXML

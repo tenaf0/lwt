@@ -16,6 +16,7 @@ repositories {
 
 dependencies {
     implementation("org.jetbrains:annotations:24.0.0")
+    implementation("org.checkerframework:checker-util:3.35.0")
 
     implementation("org.xerial:sqlite-jdbc:3.42.0.0")
     implementation("org.jsoup:jsoup:1.16.1")
@@ -50,7 +51,8 @@ javafx {
 
 checkerFramework {
     checkers = listOf("org.checkerframework.checker.nullness.NullnessChecker")
-    extraJavacArgs = listOf("-AonlyDefs=hu.garaba.model2.*")
+    excludeTests = true
+    extraJavacArgs = listOf("-AonlyDefs=hu.garaba.(model2|buffer).*", "-AskipDefs=hu.garaba.buffer.PageReader")
 }
 
 tasks.withType<JavaCompile> {
@@ -59,6 +61,9 @@ tasks.withType<JavaCompile> {
 
 tasks.withType<Test> {
     jvmArgs = listOf("--enable-preview")
+    systemProperties["junit.jupiter.execution.parallel.enabled"] = true
+    systemProperties["junit.jupiter.execution.parallel.mode.default"] = "concurrent"
+    maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).takeIf { it > 0 } ?: 1
 }
 
 tasks.test {

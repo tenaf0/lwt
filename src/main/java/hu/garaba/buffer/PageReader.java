@@ -15,7 +15,7 @@ public class PageReader {
 
     private TextProcessor.TextProcessorModel model;
 
-    private @Nullable BufferReader bufferReader;
+    private @Nullable FileBufferReader bufferReader;
     private long maxBufferNo;
 
     public record BufferPage(int bufferNo, int pageNo) {}
@@ -41,7 +41,7 @@ public class PageReader {
         this(model);
 
         try {
-            this.bufferReader = BufferReader.fromFile(path);
+            this.bufferReader = FileBufferReader.fromFile(path);
             this.maxBufferNo = bufferReader.maxBufferNo();
         } catch (IOException e) {
             throw new RuntimeException(e);
