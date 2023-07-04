@@ -1,14 +1,10 @@
 package hu.garaba.view;
 
-import hu.garaba.model.CardEntry;
 import hu.garaba.dictionary.DictionaryLookup;
-import hu.garaba.model.Model;
-import hu.garaba.model.SelectedWord;
-import hu.garaba.model.event.SelectedWordChange;
+import hu.garaba.model.CardEntry;
 import hu.garaba.model.util.Debouncer;
 import hu.garaba.model2.ReadModel;
 import javafx.application.HostServices;
-import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.fxml.FXML;
@@ -16,7 +12,7 @@ import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.text.Text;
+import javafx.scene.layout.VBox;
 import javafx.scene.text.TextFlow;
 
 public class DictionaryPane extends AnchorPane {
@@ -71,6 +67,9 @@ public class DictionaryPane extends AnchorPane {
     private TextFlow dictionaryText;
 
     @FXML
+    private VBox sentenceView;
+
+    @FXML
     private EditCardBox editCardBoxController;
 
     private final Debouncer debouncer = new Debouncer();
@@ -83,6 +82,7 @@ public class DictionaryPane extends AnchorPane {
         dictionaryLinkCollins.setOnAction(e -> hostServices.showDocument(DictionaryLookup.lookupURL(word.get(), DictionaryLookup.Dictionary.Collins)));
         grammarCategoryLabel.textProperty().bind(grammarCategory);
 
+//        sentenceView.getChildren().add(0, new WordArea());
     }
 
     @FXML

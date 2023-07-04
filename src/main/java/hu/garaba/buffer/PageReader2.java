@@ -83,7 +83,7 @@ public class PageReader2 {
                     finishedTill++;
                     sum += pages.size();
                 }
-            } while (finishedTill < futurePages.size());
+            } while (finishedTill <= futurePages.size());
 
             pageNo = new PageNo.ExactPageNo(sum);
             LOGGER.log(System.Logger.Level.INFO, "exact no of pages: " + pageNo);

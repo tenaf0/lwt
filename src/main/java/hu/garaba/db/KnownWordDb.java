@@ -40,6 +40,10 @@ public class KnownWordDb implements Closeable {
     }
 
     public WordState isKnown(String lemma) {
+        if (ignoredWords(lemma)) {
+            return WordState.IGNORED;
+        }
+
         try (var st = connection.prepareStatement("SELECT status FROM word WHERE LOWER(REPLACE(word, '|', '')) = LOWER(?)")) {
             Pattern startPattern = Pattern.compile("^\\.{2,}");
             lemma = startPattern.matcher(lemma).replaceAll("");
@@ -58,6 +62,13 @@ public class KnownWordDb implements Closeable {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private boolean ignoredWords(String lemma) {
+        List<String> ignoredSymbols = List.of(",", ".", "?", "!", ";", ":");
+        Pattern number = Pattern.compile("\\d+");
+
+        return ignoredSymbols.contains(lemma) || number.matcher(lemma).matches();
     }
 
     public void addWord(CardEntry row, WordState state) {

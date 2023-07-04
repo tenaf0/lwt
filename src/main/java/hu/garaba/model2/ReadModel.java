@@ -100,17 +100,15 @@ public class ReadModel implements EventSource<ModelEvent> {
     }
 
     private void setPage(Page page) {
-        List<Pair<TokenCoordinate, WordState>> wordStateChanges = new ArrayList<>();
+        List<WordState> wordStateChanges = new ArrayList<>();
         for (int s = 0; s < page.sentences().size(); s++) {
             Sentence sentence = page.sentences().get(s);
             for (int i = 0; i < sentence.tokens().size(); i++) {
                 Word word = sentence.findRelated(i);
-                wordStateChanges.add(
-                        new Pair<>(new TokenCoordinate(s, i), wordDB.isKnown(word.asLemma(sentence.tokens())))
-                );
+                wordStateChanges.add(wordDB.isKnown(word.asLemma(sentence.tokens())));
             }
         };
-        sendEvent(new JoinedEvent(List.of(new PageChange(page), new WordStateChange(wordStateChanges))));
+        sendEvent(new PageChange(new PageView(page, wordStateChanges)));
     }
 
     public void selectWord(TokenCoordinate coordinate) {

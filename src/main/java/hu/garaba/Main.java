@@ -1,11 +1,9 @@
 package hu.garaba;
 
-import hu.garaba.model.Model;
 import hu.garaba.model2.ReadModel;
 import hu.garaba.textprocessor.TextProcessor;
-import hu.garaba.view.DictionaryPane;
-import hu.garaba.view.EditCardBox;
-import hu.garaba.view.GUI;
+import hu.garaba.view2.MainWindow;
+import hu.garaba.view2.ReaderView;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -28,8 +26,22 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        var loader = new FXMLLoader(getClass().getResource("/gui.fxml"));
+        var loader = new FXMLLoader(getClass().getResource("/main.fxml"));
         loader.setControllerFactory(c -> {
+            if (c == MainWindow.class) {
+                return new MainWindow(model, () -> {
+                    File file = new FileChooser().showOpenDialog(primaryStage);
+                    return file.toPath();
+                }, () -> {
+                    File file = new FileChooser().showSaveDialog(primaryStage);
+                    return file.toPath();
+                });
+            } else if (c == ReaderView.class) {
+                return new ReaderView(model);
+            } else {
+                throw new IllegalArgumentException();
+            }
+/*
             if (c.equals(DictionaryPane.class)) {
                 return new DictionaryPane(model, getHostServices());
             } else if (c.equals(EditCardBox.class)) {
@@ -43,6 +55,7 @@ public class Main extends Application {
                     return file.toPath();
                 });
             }
+*/
         });
         Parent parent = loader.load();
 
