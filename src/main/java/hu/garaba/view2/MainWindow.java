@@ -1,9 +1,13 @@
 package hu.garaba.view2;
 
+import hu.garaba.model.TokenCoordinate;
 import hu.garaba.model2.ReadModel;
+import hu.garaba.model2.event.SelectedSentenceChange;
 import javafx.fxml.FXML;
+import javafx.scene.control.TitledPane;
 
 import java.nio.file.Path;
+import java.util.List;
 import java.util.function.Supplier;
 
 public class MainWindow {
@@ -15,6 +19,23 @@ public class MainWindow {
         this.model = model;
         this.fileChooser = fileChooser;
         this.textDialog = textDialog;
+    }
+
+    @FXML
+    private TitledPane sentenceViewContent;
+
+    @FXML
+    public void initialize() {
+        WordArea sentenceView = new WordArea();
+        sentenceView.setPrefHeight(200.0);
+        sentenceViewContent.setContent(sentenceView);
+
+        model.subscribe(e -> {
+            if (e instanceof SelectedSentenceChange(var pageView, var highlightedItems)) {
+                sentenceView.setPage(pageView);
+                sentenceView.handleSelection(List.of(), highlightedItems.stream().map(i -> new TokenCoordinate(0, i)).toList());
+            }
+        });
     }
 
     @FXML

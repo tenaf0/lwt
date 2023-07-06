@@ -76,14 +76,15 @@ public class PageReader2 {
                     }
 
                     for (int j = 0; j < pages.size(); j++) {
+                        assert !pageMap.containsKey(sum + j);
                         pageMap.put(sum + j, pages.get(j));
-                        pageNo = new PageNo.ApproxPageNo(sum + j, pageNo.n());
+                        pageNo = new PageNo.ApproxPageNo(sum + j, Math.max(pageNo.n(), sum + j));
                     }
                     i++;
                     finishedTill++;
                     sum += pages.size();
                 }
-            } while (finishedTill <= futurePages.size());
+            } while (finishedTill < futurePages.size());
 
             pageNo = new PageNo.ExactPageNo(sum);
             LOGGER.log(System.Logger.Level.INFO, "exact no of pages: " + pageNo);

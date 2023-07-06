@@ -1,20 +1,34 @@
 package hu.garaba.view2;
 
+import hu.garaba.model.util.Debouncer;
 import hu.garaba.model2.PageView;
 import hu.garaba.model2.ReadModel;
+import hu.garaba.model2.event.PageBoundaryChange;
 import hu.garaba.model2.event.PageChange;
+import hu.garaba.model2.event.SelectionChange;
+import hu.garaba.model2.event.WordStateChange;
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContentDisplay;
+import javafx.scene.control.Label;
+import javafx.scene.control.Slider;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.shape.SVGPath;
+
+import java.util.Objects;
 
 public class ReaderView {
     private final ReadModel model;
 
+    private final WordArea wordArea;
+
     public ReaderView(ReadModel model) {
         this.model = model;
+        this.wordArea = new WordArea(model::selectWord);
     }
 
     @FXML
@@ -25,6 +39,15 @@ public class ReaderView {
 
     @FXML
     private Button rightButton;
+
+    @FXML
+    private Slider pageSlider;
+
+    @FXML
+    private Label pageNoLabel;
+
+    private IntegerProperty pageNo = new SimpleIntegerProperty(0);
+    private IntegerProperty maxPages = new SimpleIntegerProperty(100);
 
     @FXML
     public void initialize() {
@@ -38,7 +61,6 @@ public class ReaderView {
         rightButton.setGraphic(rightImage);
         rightButton.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
 
-        WordArea wordArea = new WordArea();
         content.getChildren().add(wordArea);
 
         AnchorPane.setTopAnchor(wordArea, 0.0);
@@ -47,8 +69,31 @@ public class ReaderView {
         AnchorPane.setBottomAnchor(wordArea, 0.0);
 
         model.subscribe(e -> {
-            if (e instanceof PageChange(PageView page)) {
-                Platform.runLater(() -> wordArea.setPage(page));
+            if (e instanceof PageChange(int n, PageView page)) {
+                wordArea.setPage(page);
+                Platform.runLater(() -> pageNo.setValue(n));
+            } else if (e instanceof SelectionChange(var oldList, var newList)) {
+                wordArea.handleSelection(oldList, newList);
+            } else if (e instanceof WordStateChange(var changes)) {
+                wordArea.handleWordStateChange(changes);
+            } else if (e instanceof PageBoundaryChange(var pagesBoundary)) {
+                Platform.runLater(() -> {
+                    maxPages.setValue(pagesBoundary.n());
+                });
+            }
+        });
+
+        pageNoLabel.textProperty().bind(Bindings.concat(pageNo.add(1).map(Number::toString), "/", maxPages.map(Number::toString)));
+        pageNo.addListener((t,o,n) -> {
+            if (!pageSlider.isValueChanging()) {
+                pageSlider.setValue((int) n);
+            }
+        });
+        Debouncer debouncer = new Debouncer();
+        pageSlider.maxProperty().bind(maxPages.subtract(1));
+        pageSlider.valueProperty().addListener((t,o,n) -> {
+            if (pageSlider.isValueChanging()) {
+                debouncer.debounce(() -> model.seekPage((int) (double) n), 20);
             }
         });
     }

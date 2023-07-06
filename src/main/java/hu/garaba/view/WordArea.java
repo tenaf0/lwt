@@ -53,7 +53,7 @@ public class WordArea extends AnchorPane {
 
     private void onChange(ModelEvent change) {
         switch (change) {
-            case PageChange(var pageView) -> Platform.runLater(() -> onPageChange(pageView));
+            case PageChange(var n, var pageView) -> Platform.runLater(() -> onPageChange(pageView));
             case WordStateChange(var changes) -> Platform.runLater(() -> onKnownChange(changes));
             case SelectionChange(var oldTokens, var newTokens) -> {
                 Platform.runLater(() -> {
@@ -67,10 +67,6 @@ public class WordArea extends AnchorPane {
             }
             default -> {}
         }
-    }
-
-    private boolean isPageAndWordStateChange(List<ModelEvent> events) {
-        return events.size() == 2 && events.get(0) instanceof PageChange && events.get(1) instanceof WordStateChange;
     }
 
     private void onPageChange(PageView pageView) {
