@@ -16,9 +16,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
@@ -45,7 +43,7 @@ public class ReadModel implements EventSource<ModelEvent> {
     private final KnownWordDb wordDB;
     private @Nullable PageReader2 pageReader;
 
-    private final List<TokenCoordinate> selectedWord = new ArrayList<>();
+    private final Set<TokenCoordinate> selectedWord = new HashSet<>();
     private final List<TokenCoordinate> highlightedTokens = new ArrayList<>();
 
     public ReadModel() {
@@ -136,7 +134,7 @@ public class ReadModel implements EventSource<ModelEvent> {
             throw new IllegalStateException();
         }
 
-        ArrayList<TokenCoordinate> oldSelection = new ArrayList<>(selectedWord);
+        Set<TokenCoordinate> oldSelection = new HashSet<>(selectedWord);
         selectedWord.clear();
 
         Page page = NullnessUtil.castNonNull(pageReader).getPage(currentPage);

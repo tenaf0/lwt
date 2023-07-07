@@ -16,10 +16,7 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Consumer;
 
 public class WordArea extends ScrollPane {
@@ -65,7 +62,7 @@ public class WordArea extends ScrollPane {
         });
     }
 
-    public void handleSelection(List<TokenCoordinate> oldSelection, List<TokenCoordinate> newSelection) {
+    public void handleSelection(Set<TokenCoordinate> oldSelection, Set<TokenCoordinate> newSelection) {
         Platform.runLater(() -> {
             oldSelection.stream().map(tc -> tokenMap.get(tc)).forEach(n -> setTokenSelection(n, false));
             newSelection.stream().map(tc -> tokenMap.get(tc)).forEach(n -> setTokenSelection(n, true));

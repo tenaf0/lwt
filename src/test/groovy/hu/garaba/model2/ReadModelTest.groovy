@@ -1,16 +1,14 @@
 package hu.garaba.model2
 
 import hu.garaba.buffer.FileBufferReader
-import hu.garaba.model2.event.ModelEvent
-import hu.garaba.model2.event.PageChange
-import hu.garaba.model2.event.StateChange
+import hu.garaba.model.TokenCoordinate
+import hu.garaba.model2.event.*
+import org.mockito.Mockito
 import spock.lang.Specification
-import spock.util.concurrent.PollingConditions
 
 import java.nio.file.Path
 
-import static hu.garaba.model2.ReadModel.ReadModelState.LOADED
-import static hu.garaba.model2.ReadModel.ReadModelState.LOADING
+import static hu.garaba.model2.ReadModel.ReadModelState.*
 
 class ReadModelTest extends Specification {
     interface EventHandler {
@@ -18,13 +16,12 @@ class ReadModelTest extends Specification {
     }
 
     def "model state should change from UNLOADED to LOADING and finally LOADED upon opening some text"() {
-        given:
-        def eventHandler = Mock(EventHandler)
-        def eventsReceived = 0
+        def eventHandler = Mockito.mock(EventHandler)
+        def inOrder = Mockito.inOrder(eventHandler)
 
+        given:
         def model = new ReadModel()
         model.subscribe {
-            eventsReceived++
             eventHandler.receive(it)
         }
 
@@ -32,37 +29,62 @@ class ReadModelTest extends Specification {
         model.open("Example text")
 
         then:
-        new PollingConditions().within(20) {
-            assert eventsReceived >= 3
-        }
-
-        then:
-        1 * eventHandler.receive(new StateChange(LOADING))
-
-        then:
-        1 * eventHandler.receive(new StateChange(LOADED))
+        inOrder.verify(eventHandler, Mockito.timeout(1000)).receive(new StateChange(UNLOADED))
+        inOrder.verify(eventHandler, Mockito.timeout(1000)).receive(new StateChange(LOADING))
+        inOrder.verify(eventHandler, Mockito.timeout(16000)).receive(new StateChange(LOADED))
     }
 
-    def "model should receive PageChange events upon calling nextPage()"() {
+    def "model should receive PageChange events upon nextPage()"() {
+        def eventHandler = Mockito.mock(EventHandler)
+        def inOrder = Mockito.inOrder(eventHandler)
+
         given:
-        def eventHandler = Mock(EventHandler)
-        def eventsReceived = 0
         def model = new ReadModel()
         model.subscribe {
-            eventsReceived++
             eventHandler.receive(it)
         }
 
-        when:
         model.open(Path.of(FileBufferReader.class.getResource("/kafka_prozess.txt").getFile()))
-        model.nextPage()
+        inOrder.verify(eventHandler, Mockito.timeout(16000))
+                .receive(new StateChange(LOADED))
+        inOrder.verify(eventHandler, Mockito.timeout(1000))
+                .receive(Mockito.argThat { it instanceof PageChange && it.n() == 0 })
 
-        then:
-        new PollingConditions().within(40) {
-            assert eventsReceived >= 4
+        expect:
+        model.nextPage()
+        inOrder.verify(eventHandler, Mockito.timeout(1000))
+                .receive(Mockito.argThat { it instanceof PageChange && it.n() == 1 })
+        model.nextPage()
+        inOrder.verify(eventHandler, Mockito.timeout(1000))
+                .receive(Mockito.argThat { it instanceof PageChange && it.n() == 2 })
+    }
+
+    def "model should correctly select a word based on coordinates"() {
+        def eventHandler = Mockito.mock(EventHandler)
+        def inOrder = Mockito.inOrder(eventHandler)
+
+        given:
+        def model = new ReadModel()
+        model.subscribe {
+            eventHandler.receive(it)
         }
 
+        model.open("Sicher, ich fange gleich an. Jeden Morgen stehe ich um 7 Uhr auf. Danach ziehe ich mich an und putze meine Zähne. " +
+                "Dann mache ich das Frühstück und rufe meine Kinder. Bevor ich zur Arbeit gehe, räume ich das Haus auf.")
+        inOrder.verify(eventHandler, Mockito.timeout(16000))
+                .receive(new StateChange(LOADED))
+        inOrder.verify(eventHandler, Mockito.timeout(1000))
+                .receive(Mockito.argThat { it instanceof PageChange && it.n() == 0 })
+
+        when:
+        model.selectWord(new TokenCoordinate(0, 3))
+
         then:
-        2 * eventHandler.receive(_ as PageChange)
+        Mockito.verify(eventHandler, Mockito.timeout(1000))
+                .receive(new SelectionChange(Set.of(),
+                        Set.of(new TokenCoordinate(0, 3), new TokenCoordinate(0, 5))))
+        Mockito.verify(eventHandler, Mockito.timeout(1000))
+                .receive(Mockito.argThat { it instanceof SelectedSentenceChange })
     }
+
 }

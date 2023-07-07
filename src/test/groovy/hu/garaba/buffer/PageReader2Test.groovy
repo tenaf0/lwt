@@ -7,7 +7,7 @@ import spock.util.concurrent.PollingConditions
 import java.nio.file.Path
 
 class PageReader2Test extends Specification {
-    def "asd"() {
+    def "a PageReader should process the opened file in the background and eventually get an exact read of its pages"() {
         Path book = Path.of(FileBufferReader.class.getResource("/kafka_prozess.txt").getFile());
 
         when:

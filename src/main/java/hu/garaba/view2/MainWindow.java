@@ -4,11 +4,13 @@ import hu.garaba.model.TokenCoordinate;
 import hu.garaba.model2.ReadModel;
 import hu.garaba.model2.event.SelectedSentenceChange;
 import javafx.fxml.FXML;
-import javafx.scene.control.TitledPane;
+import javafx.scene.control.*;
 
 import java.nio.file.Path;
-import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public class MainWindow {
     private final ReadModel model;
@@ -33,7 +35,9 @@ public class MainWindow {
         model.subscribe(e -> {
             if (e instanceof SelectedSentenceChange(var pageView, var highlightedItems)) {
                 sentenceView.setPage(pageView);
-                sentenceView.handleSelection(List.of(), highlightedItems.stream().map(i -> new TokenCoordinate(0, i)).toList());
+                sentenceView.handleSelection(Set.of(), highlightedItems.stream()
+                        .map(i -> new TokenCoordinate(0, i))
+                        .collect(Collectors.toSet()));
             }
         });
     }
@@ -46,7 +50,27 @@ public class MainWindow {
 
     @FXML
     public void onEnterText() {
+        Dialog<String> dialog = new Dialog<>();
+        dialog.setTitle("Enter custom text");
+        dialog.getDialogPane().getButtonTypes().addAll(
+                new ButtonType("Enter", ButtonBar.ButtonData.OK_DONE),
+                ButtonType.CANCEL
+        );
 
+        var textArea = new TextArea();
+
+        dialog.getDialogPane().setContent(textArea);
+
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton != ButtonType.CANCEL) {
+                return textArea.getText();
+            } else {
+                return null;
+            }
+        });
+
+        Optional<String> res = dialog.showAndWait();
+        res.ifPresent(model::open);
     }
 
     @FXML

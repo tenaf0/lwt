@@ -2,7 +2,7 @@ package hu.garaba.model2.event;
 
 import hu.garaba.model.TokenCoordinate;
 
-import java.util.List;
+import java.util.Set;
 
-public record SelectionChange(List<TokenCoordinate> oldSelection, List<TokenCoordinate> newSelection) implements ModelEvent {
+public record SelectionChange(Set<TokenCoordinate> oldSelection, Set<TokenCoordinate> newSelection) implements ModelEvent {
 }
