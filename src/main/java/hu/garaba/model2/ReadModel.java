@@ -22,7 +22,7 @@ import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
 public class ReadModel implements EventSource<ModelEvent> {
-    public static final System.Logger LOGGER = System.getLogger("READMODEL");
+    public static final System.Logger LOGGER = System.getLogger(ReadModel.class.getCanonicalName());
     private final ExecutorService executorService = Executors.newSingleThreadExecutor(r -> {
         @SuppressWarnings("nullness") @NonNull
         Thread t = Executors.defaultThreadFactory().newThread(r);
@@ -55,10 +55,12 @@ public class ReadModel implements EventSource<ModelEvent> {
     }
 
     public void open(String text) {
+        LOGGER.log(System.Logger.Level.INFO, "Opening provided text input");
         open(PageReader2.openText(text));
     }
     public void open(Path filePath) {
         try {
+            LOGGER.log(System.Logger.Level.INFO, "Opening " + filePath);
             open(PageReader2.openFile(filePath));
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -66,6 +68,7 @@ public class ReadModel implements EventSource<ModelEvent> {
     }
 
     private void open(PageReader2 pageReader) {
+        currentPage = 0;
         changeModelState(ReadModelState.UNLOADED);
 
         this.pageReader = pageReader;
@@ -120,7 +123,7 @@ public class ReadModel implements EventSource<ModelEvent> {
                 Word word = sentence.findRelated(i);
                 wordStateChanges.add(wordDB.isKnown(word.asLemma(sentence.tokens())));
             }
-        };
+        }
         sendEvent(new PageChange(n, new PageView(page, wordStateChanges)));
 
         if (pageReader != null && !pageReader.getPageNo().equals(prevPageBoundary)) {
@@ -155,7 +158,7 @@ public class ReadModel implements EventSource<ModelEvent> {
 
     @Override
     public void sendEvent(ModelEvent event) {
-        LOGGER.log(System.Logger.Level.INFO, "-> " + event);
+        LOGGER.log(System.Logger.Level.DEBUG, "-> " + event);
         eventHandlers.forEach(h -> h.accept(event));
     }
 }

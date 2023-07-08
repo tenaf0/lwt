@@ -1,7 +1,6 @@
 package hu.garaba.buffer;
 
 import hu.garaba.textprocessor.TextProcessor;
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.util.NullnessUtil;
 
 import java.io.*;
@@ -20,7 +19,7 @@ import java.util.concurrent.LinkedBlockingDeque;
  * is made from a whole number of German sentences (so that subsequent language processing should not care about partial sentences).
  */
 public class FileBufferReader implements BufferReader {
-    public static final System.Logger LOGGER = System.getLogger("FILEBUFFERREADER");
+    public static final System.Logger LOGGER = System.getLogger(FileBufferReader.class.getCanonicalName());
 
 
     private final long maxBufferNo;
@@ -77,7 +76,7 @@ public class FileBufferReader implements BufferReader {
         }
 
         bufferTextMap.put(n, new SoftReference<>(null));
-        LOGGER.log(System.Logger.Level.INFO, "Started loading block " + n);
+        LOGGER.log(System.Logger.Level.DEBUG, "Started loading block " + n);
 
         RandomAccessFile file;
         try {

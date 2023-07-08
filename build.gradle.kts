@@ -2,9 +2,11 @@ plugins {
     id("java")
     id("groovy")
     id("application")
-    id("org.checkerframework") version "0.6.26"
-    id("org.openjfx.javafxplugin") version "0.0.13"
-    id("dev.hydraulic.conveyor") version "1.5"
+    id("org.checkerframework") version "0.6.29"
+    id("org.openjfx.javafxplugin") version "0.0.14"
+    id("dev.hydraulic.conveyor") version "1.6"
+
+    id("com.github.ben-manes.versions") version "0.47.0"
 }
 
 group = "hu.garaba"
@@ -15,12 +17,15 @@ repositories {
 }
 
 dependencies {
-    implementation("org.jetbrains:annotations:24.0.0")
-    implementation("org.checkerframework:checker-util:3.35.0")
+    implementation("org.jetbrains:annotations:24.0.1")
+    implementation("org.checkerframework:checker-util:3.36.0")
+
+    implementation("org.apache.logging.log4j:log4j-core:3.0.0-alpha1")
+    implementation("org.apache.logging.log4j:log4j-jpl:3.0.0-alpha1")
 
     implementation("org.xerial:sqlite-jdbc:3.42.0.0")
     implementation("org.jsoup:jsoup:1.16.1")
-    implementation("com.alibaba:fastjson:2.0.32")
+    implementation("com.alibaba:fastjson:2.0.34")
     implementation("com.github.mizosoft.methanol:methanol:1.7.0")
     implementation("com.opencsv:opencsv:5.7.1")
 

@@ -14,7 +14,7 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 public class PageReader2 {
-    public static final System.Logger LOGGER = System.getLogger("PAGEREADER");
+    public static final System.Logger LOGGER = System.getLogger(PageReader2.class.getCanonicalName());
 
     public final int PAGE_SIZE = 10;
 
@@ -87,7 +87,7 @@ public class PageReader2 {
             } while (finishedTill < futurePages.size());
 
             pageNo = new PageNo.ExactPageNo(sum);
-            LOGGER.log(System.Logger.Level.INFO, "exact no of pages: " + pageNo);
+            LOGGER.log(System.Logger.Level.DEBUG, "exact no of pages: " + pageNo);
         }, "pageAdder");
         pageAdder.setDaemon(true);
         pageAdder.start();
