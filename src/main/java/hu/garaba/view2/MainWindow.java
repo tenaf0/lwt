@@ -15,13 +15,16 @@ import java.util.stream.Collectors;
 public class MainWindow {
     private final ReadModel model;
     private final Supplier<Path> fileChooser;
-    private final Supplier<Path> textDialog;
+    private final Supplier<Path> exportPathSupplier;
 
-    public MainWindow(ReadModel model, Supplier<Path> fileChooser, Supplier<Path> textDialog) {
+    public MainWindow(ReadModel model, Supplier<Path> fileChooser, Supplier<Path> exportPathSupplier) {
         this.model = model;
         this.fileChooser = fileChooser;
-        this.textDialog = textDialog;
+        this.exportPathSupplier = exportPathSupplier;
     }
+
+    @FXML
+    private TitledPane dictionaryContent;
 
     @FXML
     private TitledPane sentenceViewContent;
@@ -76,5 +79,26 @@ public class MainWindow {
     @FXML
     public void onExport() {
 
+    }
+
+    @FXML
+    public void ignoreAction() {
+//        CardEntry cardEntry = editCardBoxController.collectCardEntryInfos().wordOnly();
+//        System.out.println(cardEntry);
+//        model.addWord(cardEntry, Model.WordState.IGNORED);
+    }
+
+    @FXML
+    public void learningAction() {
+//        CardEntry cardEntry = editCardBoxController.collectCardEntryInfos();
+//        System.out.println(cardEntry);
+//        model.addWord(cardEntry, Model.WordState.LEARNING);
+    }
+
+    @FXML
+    public void knownAction() {
+//        CardEntry cardEntry = editCardBoxController.collectCardEntryInfos().wordOnly();
+//        System.out.println(cardEntry);
+//        model.addWord(cardEntry, Model.WordState.KNOWN);
     }
 }

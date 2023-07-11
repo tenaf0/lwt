@@ -1,4 +1,6 @@
 package hu.garaba.model2.event;
 
-public record DictionaryWordChange() implements ModelEvent {
+import hu.garaba.dictionary.DictionaryEntry;
+
+public record DictionaryWordChange(DictionaryEntry entry) implements ModelEvent {
 }

@@ -1,7 +1,9 @@
 package hu.garaba;
 
+import hu.garaba.db.KnownWordDb;
 import hu.garaba.model2.ReadModel;
 import hu.garaba.textprocessor.TextProcessor;
+import hu.garaba.view2.DictionaryView;
 import hu.garaba.view2.MainWindow;
 import hu.garaba.view2.ReaderView;
 import javafx.application.Application;
@@ -12,9 +14,18 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 import java.io.File;
+import java.sql.SQLException;
 
 public class Main extends Application {
-    private final ReadModel model = new ReadModel();
+    private final ReadModel model;
+
+    public Main() {
+        try {
+            this.model = new ReadModel(new KnownWordDb("known_word.db"));
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     public static void main(String[] args) {
         Thread thread = new Thread(TextProcessor::warmup);
@@ -38,6 +49,8 @@ public class Main extends Application {
                 });
             } else if (c == ReaderView.class) {
                 return new ReaderView(model);
+            } else if (c == DictionaryView.class) {
+                return new DictionaryView(model, getHostServices());
             } else {
                 throw new IllegalArgumentException();
             }

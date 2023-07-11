@@ -4,6 +4,9 @@ import hu.garaba.buffer.Page;
 import hu.garaba.buffer.PageReader2;
 import hu.garaba.db.KnownWordDb;
 import hu.garaba.db.WordState;
+import hu.garaba.dictionary.CollinsDictionaryLookup;
+import hu.garaba.dictionary.DictionaryEntry;
+import hu.garaba.dictionary.DictionaryLookup2;
 import hu.garaba.model.TokenCoordinate;
 import hu.garaba.model2.event.*;
 import hu.garaba.textprocessor.Sentence;
@@ -15,8 +18,10 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
@@ -46,12 +51,8 @@ public class ReadModel implements EventSource<ModelEvent> {
     private final Set<TokenCoordinate> selectedWord = new HashSet<>();
     private final List<TokenCoordinate> highlightedTokens = new ArrayList<>();
 
-    public ReadModel() {
-        try {
-            this.wordDB = new KnownWordDb("known_word.db");
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+    public ReadModel(KnownWordDb wordDB) {
+        this.wordDB = wordDB;
     }
 
     public void open(String text) {
@@ -119,10 +120,8 @@ public class ReadModel implements EventSource<ModelEvent> {
         List<WordState> wordStateChanges = new ArrayList<>();
         for (int s = 0; s < page.sentences().size(); s++) {
             Sentence sentence = page.sentences().get(s);
-            for (int i = 0; i < sentence.tokens().size(); i++) {
-                Word word = sentence.findRelated(i);
-                wordStateChanges.add(wordDB.isKnown(word.asLemma(sentence.tokens())));
-            }
+            List<WordState> wordStates = getWordStatesForSentence(sentence);
+            wordStateChanges.addAll(wordStates);
         }
         sendEvent(new PageChange(n, new PageView(page, wordStateChanges)));
 
@@ -130,6 +129,17 @@ public class ReadModel implements EventSource<ModelEvent> {
             this.prevPageBoundary = NullnessUtil.castNonNull(pageReader).getPageNo();
             sendEvent(new PageBoundaryChange(prevPageBoundary));
         }
+    }
+
+    private List<WordState> getWordStatesForSentence(Sentence sentence) {
+        List<WordState> result = new ArrayList<>();
+
+        for (int i = 0; i < sentence.tokens().size(); i++) {
+            Word word = sentence.findRelated(i);
+            result.add(wordDB.isKnown(word.asLemma(sentence.tokens())));
+        }
+
+        return result;
     }
 
     public void selectWord(TokenCoordinate coordinate) {
@@ -146,7 +156,17 @@ public class ReadModel implements EventSource<ModelEvent> {
         word.tokens().forEach(i -> selectedWord.add(new TokenCoordinate(coordinate.sentenceNo(), i)));
 
         sendEvent(new SelectionChange(oldSelection, selectedWord));
-        sendEvent(new SelectedSentenceChange(new PageView(new Page(List.of(sentence)), Collections.nCopies(sentence.tokens().size(), WordState.IGNORED)), word.tokens()));
+        sendEvent(new SelectedSentenceChange(new PageView(new Page(List.of(sentence)),
+                getWordStatesForSentence(sentence)), word.tokens()));
+
+        try {
+            DictionaryLookup2 dictionaryLookup2 = new CollinsDictionaryLookup(); // TODO
+            DictionaryEntry dictionaryEntry = dictionaryLookup2.lookup(word.asLemma(sentence.tokens()));
+            sendEvent(new DictionaryWordChange(dictionaryEntry));
+        } catch (IOException e) {
+            LOGGER.log(System.Logger.Level.DEBUG, e);
+        }
+
     }
 
     private final List<Consumer<ModelEvent>> eventHandlers = new ArrayList<>();

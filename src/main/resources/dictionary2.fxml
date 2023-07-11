@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Hyperlink?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+<?import javafx.scene.text.Text?>
+<?import javafx.scene.text.TextFlow?>
+
+
+<VBox minHeight="-Infinity" minWidth="-Infinity" prefHeight="200.0" prefWidth="200.0" xmlns="http://javafx.com/javafx/19.0.2.1-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="hu.garaba.view2.DictionaryView">
+   <children>
+      <HBox fillHeight="false" prefWidth="200.0">
+         <children>
+            <VBox HBox.hgrow="ALWAYS">
+               <children>
+                  <HBox>
+                     <children>
+                        <Label fx:id="wordLabel" maxWidth="1.7976931348623157E308">
+                           <font>
+                              <Font size="20.0" />
+                           </font>
+                        </Label>
+                        <Hyperlink fx:id="dictionaryLink" text="Collins">
+                           <font>
+                              <Font size="9.0" />
+                           </font>
+                        </Hyperlink>
+                     </children>
+                  </HBox>
+                  <Label fx:id="grammarLabel" />
+               </children>
+            </VBox>
+            <TextField fx:id="searchField" onAction="#onSearch" prefWidth="100.0" promptText="Search" />
+         </children>
+      </HBox>
+      <ScrollPane fitToWidth="true" hbarPolicy="NEVER" VBox.vgrow="ALWAYS">
+         <content>
+            <TextFlow>
+               <children>
+                  <Text fx:id="bodyText" strokeType="OUTSIDE" strokeWidth="0.0" />
+               </children>
+            </TextFlow>
+         </content>
+      </ScrollPane>
+   </children>
+</VBox>

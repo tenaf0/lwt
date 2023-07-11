@@ -1,6 +1,8 @@
 package hu.garaba.model2
 
 import hu.garaba.buffer.FileBufferReader
+import hu.garaba.db.KnownWordDb
+import hu.garaba.db.WordState
 import hu.garaba.model.TokenCoordinate
 import hu.garaba.model2.event.*
 import org.mockito.ArgumentMatcher
@@ -18,12 +20,18 @@ class ReadModelTest extends Specification {
         void receive(ModelEvent event);
     }
 
+    def wordDb = Mock(KnownWordDb)
+
+    def setup() {
+        wordDb.isKnown(_) >> WordState.IGNORED
+    }
+
     def "model state should change from UNLOADED to LOADING and finally LOADED upon opening some text"() {
         def eventHandler = Mockito.mock(EventHandler)
         def inOrder = Mockito.inOrder(eventHandler)
 
         given:
-        def model = new ReadModel()
+        def model = new ReadModel(wordDb)
         model.subscribe {
             eventHandler.receive(it)
         }
@@ -42,7 +50,7 @@ class ReadModelTest extends Specification {
         def inOrder = Mockito.inOrder(eventHandler)
 
         given:
-        def model = new ReadModel()
+        def model = new ReadModel(wordDb)
         model.subscribe {
             eventHandler.receive(it)
         }
@@ -67,7 +75,7 @@ class ReadModelTest extends Specification {
         def inOrder = Mockito.inOrder(eventHandler)
 
         given:
-        def model = new ReadModel()
+        def model = new ReadModel(wordDb)
         model.subscribe {
             eventHandler.receive(it)
         }
@@ -95,7 +103,7 @@ class ReadModelTest extends Specification {
         def inOrder = Mockito.inOrder(eventHandler)
 
         given:
-        def model = new ReadModel()
+        def model = new ReadModel(wordDb)
         model.subscribe {
             eventHandler.receive(it)
         }
@@ -126,7 +134,7 @@ class ReadModelTest extends Specification {
         def inOrder = Mockito.inOrder(eventHandler)
 
         given:
-        def model = new ReadModel()
+        def model = new ReadModel(wordDb)
         model.subscribe {
             eventHandler.receive(it)
         }
