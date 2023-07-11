@@ -42,7 +42,7 @@
                       <TitledPane fx:id="sentenceViewContent" animated="false" text="Sentence view" VBox.vgrow="ALWAYS" />
                         <TitledPane animated="false" text="Edit card" VBox.vgrow="ALWAYS">
                            <content>
-                              <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" />
+                              <fx:include fx:id="editCardBox" source="edit_card.fxml" />
                            </content>
                         </TitledPane>
                         <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">

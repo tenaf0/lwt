@@ -3,6 +3,7 @@ package hu.garaba;
 import hu.garaba.db.KnownWordDb;
 import hu.garaba.model2.ReadModel;
 import hu.garaba.textprocessor.TextProcessor;
+import hu.garaba.view.EditCardBox;
 import hu.garaba.view2.DictionaryView;
 import hu.garaba.view2.MainWindow;
 import hu.garaba.view2.ReaderView;
@@ -51,15 +52,15 @@ public class Main extends Application {
                 return new ReaderView(model);
             } else if (c == DictionaryView.class) {
                 return new DictionaryView(model, getHostServices());
+            } else if (c == EditCardBox.class) {
+                return new EditCardBox(model);
             } else {
                 throw new IllegalArgumentException();
             }
 /*
             if (c.equals(DictionaryPane.class)) {
                 return new DictionaryPane(model, getHostServices());
-            } else if (c.equals(EditCardBox.class)) {
-                return new EditCardBox(model);
-            } else {
+            }  else {
                 return new GUI(model, () -> {
                     File file = new FileChooser().showOpenDialog(primaryStage);
                     return file.toPath();

@@ -156,17 +156,25 @@ public class ReadModel implements EventSource<ModelEvent> {
         word.tokens().forEach(i -> selectedWord.add(new TokenCoordinate(coordinate.sentenceNo(), i)));
 
         sendEvent(new SelectionChange(oldSelection, selectedWord));
-        sendEvent(new SelectedSentenceChange(new PageView(new Page(List.of(sentence)),
-                getWordStatesForSentence(sentence)), word.tokens()));
+        SelectedWordChange.SentenceView sentenceView = new SelectedWordChange.SentenceView(sentence,
+                getWordStatesForSentence(sentence), word);
+        sendEvent(new SelectedWordChange(word.asLemma(sentence.tokens()),
+                null, sentenceView));
 
-        try {
-            DictionaryLookup2 dictionaryLookup2 = new CollinsDictionaryLookup(); // TODO
-            DictionaryEntry dictionaryEntry = dictionaryLookup2.lookup(word.asLemma(sentence.tokens()));
-            sendEvent(new DictionaryWordChange(dictionaryEntry));
-        } catch (IOException e) {
-            LOGGER.log(System.Logger.Level.DEBUG, e);
-        }
+        executorService.submit(() -> {
+            try {
+                DictionaryLookup2 dictionaryLookup2 = new CollinsDictionaryLookup(); // TODO
+                DictionaryEntry dictionaryEntry = dictionaryLookup2.lookup(word.asLemma(sentence.tokens()));
+                sendEvent(new SelectedWordChange(word.asLemma(sentence.tokens()),
+                                dictionaryEntry, sentenceView));
+            } catch (IOException e) {
+                LOGGER.log(System.Logger.Level.DEBUG, e);
+            }
+        });
+    }
 
+    public boolean isKnown(String lemma) {
+        return wordDB.isKnown(lemma) != WordState.UNKNOWN;
     }
 
     private final List<Consumer<ModelEvent>> eventHandlers = new ArrayList<>();

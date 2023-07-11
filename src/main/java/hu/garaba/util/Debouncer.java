@@ -1,4 +1,4 @@
-package hu.garaba.model.util;
+package hu.garaba.util;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;

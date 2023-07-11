@@ -2,7 +2,7 @@ package hu.garaba.view;
 
 import hu.garaba.dictionary.DictionaryLookup;
 import hu.garaba.model.CardEntry;
-import hu.garaba.model.util.Debouncer;
+import hu.garaba.util.Debouncer;
 import hu.garaba.model2.ReadModel;
 import javafx.application.HostServices;
 import javafx.beans.property.SimpleStringProperty;

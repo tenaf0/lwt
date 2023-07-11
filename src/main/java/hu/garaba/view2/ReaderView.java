@@ -1,6 +1,6 @@
 package hu.garaba.view2;
 
-import hu.garaba.model.util.Debouncer;
+import hu.garaba.util.Debouncer;
 import hu.garaba.model2.PageView;
 import hu.garaba.model2.ReadModel;
 import hu.garaba.model2.event.PageBoundaryChange;
@@ -18,8 +18,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.shape.SVGPath;
-
-import java.util.Objects;
 
 public class ReaderView {
     private final ReadModel model;

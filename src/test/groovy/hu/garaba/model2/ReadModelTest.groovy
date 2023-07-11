@@ -95,7 +95,7 @@ class ReadModelTest extends Specification {
                 .receive(new SelectionChange(Set.of(),
                         Set.of(new TokenCoordinate(0, 3), new TokenCoordinate(0, 5))))
         Mockito.verify(eventHandler, Mockito.timeout(1000))
-                .receive(argThat { it instanceof SelectedSentenceChange })
+                .receive(argThat { it instanceof SelectedWordChange })
     }
 
     def "open() in a model which has LOADED state should properly load new document"() {

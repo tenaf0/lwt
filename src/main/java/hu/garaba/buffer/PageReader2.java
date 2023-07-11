@@ -93,7 +93,8 @@ public class PageReader2 {
         pageAdder.start();
 
         Thread initThread = new Thread(() -> {
-            try (ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors(),
+            try (ExecutorService executorService = Executors.newFixedThreadPool(
+                    Math.max(1, Runtime.getRuntime().availableProcessors()-2),
                     r -> {
                         Thread thread = Executors.defaultThreadFactory().newThread(r);
                         thread.setDaemon(true);
