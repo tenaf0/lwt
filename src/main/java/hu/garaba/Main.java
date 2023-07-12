@@ -1,6 +1,7 @@
 package hu.garaba;
 
 import hu.garaba.db.KnownWordDb;
+import hu.garaba.dictionary.CollinsDictionaryLookup;
 import hu.garaba.model2.ReadModel;
 import hu.garaba.textprocessor.TextProcessor;
 import hu.garaba.view.EditCardBox;
@@ -18,11 +19,11 @@ import java.io.File;
 import java.sql.SQLException;
 
 public class Main extends Application {
-    private final ReadModel model;
+    private final ReadModel readModel;
 
     public Main() {
         try {
-            this.model = new ReadModel(new KnownWordDb("known_word.db"));
+            this.readModel = new ReadModel(new KnownWordDb("known_word.db"), new CollinsDictionaryLookup());
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -41,7 +42,7 @@ public class Main extends Application {
         var loader = new FXMLLoader(getClass().getResource("/main.fxml"));
         loader.setControllerFactory(c -> {
             if (c == MainWindow.class) {
-                return new MainWindow(model, () -> {
+                return new MainWindow(readModel, () -> {
                     File file = new FileChooser().showOpenDialog(primaryStage);
                     return file.toPath();
                 }, () -> {
@@ -49,11 +50,11 @@ public class Main extends Application {
                     return file.toPath();
                 });
             } else if (c == ReaderView.class) {
-                return new ReaderView(model);
+                return new ReaderView(readModel);
             } else if (c == DictionaryView.class) {
-                return new DictionaryView(model, getHostServices());
+                return new DictionaryView(readModel, getHostServices());
             } else if (c == EditCardBox.class) {
-                return new EditCardBox(model);
+                return new EditCardBox(readModel);
             } else {
                 throw new IllegalArgumentException();
             }

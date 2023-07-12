@@ -3,6 +3,8 @@ package hu.garaba.model2
 import hu.garaba.buffer.FileBufferReader
 import hu.garaba.db.KnownWordDb
 import hu.garaba.db.WordState
+import hu.garaba.dictionary.DictionaryEntry
+import hu.garaba.dictionary.DictionaryLookup2
 import hu.garaba.model.TokenCoordinate
 import hu.garaba.model2.event.*
 import org.mockito.ArgumentMatcher
@@ -20,10 +22,14 @@ class ReadModelTest extends Specification {
         void receive(ModelEvent event);
     }
 
-    def wordDb = Mock(KnownWordDb)
+    def db = Mock(KnownWordDb)
+    def dictionaryLookupService = Mock(DictionaryLookup2)
 
     def setup() {
-        wordDb.isKnown(_) >> WordState.IGNORED
+        db.isKnown(_) >> WordState.IGNORED
+//        dictionaryLookupService.search(_) >> WordState.IGNORED
+        dictionaryLookupService.lookup(_) >> { String word -> new DictionaryEntry(word, null, null, null) }
+        dictionaryLookupService.selectById(_) >> { String word -> new DictionaryEntry(word, null, null, null) }
     }
 
     def "model state should change from UNLOADED to LOADING and finally LOADED upon opening some text"() {
@@ -31,7 +37,7 @@ class ReadModelTest extends Specification {
         def inOrder = Mockito.inOrder(eventHandler)
 
         given:
-        def model = new ReadModel(wordDb)
+        def model = new ReadModel(db, dictionaryLookupService)
         model.subscribe {
             eventHandler.receive(it)
         }
@@ -50,7 +56,7 @@ class ReadModelTest extends Specification {
         def inOrder = Mockito.inOrder(eventHandler)
 
         given:
-        def model = new ReadModel(wordDb)
+        def model = new ReadModel(db, dictionaryLookupService)
         model.subscribe {
             eventHandler.receive(it)
         }
@@ -75,7 +81,7 @@ class ReadModelTest extends Specification {
         def inOrder = Mockito.inOrder(eventHandler)
 
         given:
-        def model = new ReadModel(wordDb)
+        def model = new ReadModel(db, dictionaryLookupService)
         model.subscribe {
             eventHandler.receive(it)
         }
@@ -95,7 +101,9 @@ class ReadModelTest extends Specification {
                 .receive(new SelectionChange(Set.of(),
                         Set.of(new TokenCoordinate(0, 3), new TokenCoordinate(0, 5))))
         Mockito.verify(eventHandler, Mockito.timeout(1000))
-                .receive(argThat { it instanceof SelectedWordChange })
+                .receive(argThat { it instanceof SelectedWordChange && it.dictionaryEntry() == null })
+        Mockito.verify(eventHandler, Mockito.timeout(1000))
+                .receive(argThat { it instanceof SelectedWordChange && it.dictionaryEntry() != null })
     }
 
     def "open() in a model which has LOADED state should properly load new document"() {
@@ -103,7 +111,7 @@ class ReadModelTest extends Specification {
         def inOrder = Mockito.inOrder(eventHandler)
 
         given:
-        def model = new ReadModel(wordDb)
+        def model = new ReadModel(db, dictionaryLookupService)
         model.subscribe {
             eventHandler.receive(it)
         }
@@ -134,7 +142,7 @@ class ReadModelTest extends Specification {
         def inOrder = Mockito.inOrder(eventHandler)
 
         given:
-        def model = new ReadModel(wordDb)
+        def model = new ReadModel(db, dictionaryLookupService)
         model.subscribe {
             eventHandler.receive(it)
         }

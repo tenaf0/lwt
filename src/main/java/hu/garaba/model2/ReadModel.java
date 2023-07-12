@@ -4,9 +4,9 @@ import hu.garaba.buffer.Page;
 import hu.garaba.buffer.PageReader2;
 import hu.garaba.db.KnownWordDb;
 import hu.garaba.db.WordState;
-import hu.garaba.dictionary.CollinsDictionaryLookup;
 import hu.garaba.dictionary.DictionaryEntry;
 import hu.garaba.dictionary.DictionaryLookup2;
+import hu.garaba.model.CardEntry;
 import hu.garaba.model.TokenCoordinate;
 import hu.garaba.model2.event.*;
 import hu.garaba.textprocessor.Sentence;
@@ -45,14 +45,17 @@ public class ReadModel implements EventSource<ModelEvent> {
         sendEvent(new StateChange(newState));
     }
 
-    private final KnownWordDb wordDB;
+    private final KnownWordDb db;
+    private final DictionaryLookup2 dictionaryService;
+
     private @Nullable PageReader2 pageReader;
 
     private final Set<TokenCoordinate> selectedWord = new HashSet<>();
     private final List<TokenCoordinate> highlightedTokens = new ArrayList<>();
 
-    public ReadModel(KnownWordDb wordDB) {
-        this.wordDB = wordDB;
+    public ReadModel(KnownWordDb db, DictionaryLookup2 dictionaryService) {
+        this.db = db;
+        this.dictionaryService = dictionaryService;
     }
 
     public void open(String text) {
@@ -136,7 +139,7 @@ public class ReadModel implements EventSource<ModelEvent> {
 
         for (int i = 0; i < sentence.tokens().size(); i++) {
             Word word = sentence.findRelated(i);
-            result.add(wordDB.isKnown(word.asLemma(sentence.tokens())));
+            result.add(getWordState(word.asLemma(sentence.tokens())));
         }
 
         return result;
@@ -163,8 +166,7 @@ public class ReadModel implements EventSource<ModelEvent> {
 
         executorService.submit(() -> {
             try {
-                DictionaryLookup2 dictionaryLookup2 = new CollinsDictionaryLookup(); // TODO
-                DictionaryEntry dictionaryEntry = dictionaryLookup2.lookup(word.asLemma(sentence.tokens()));
+                DictionaryEntry dictionaryEntry = dictionaryService.lookup(word.asLemma(sentence.tokens()));
                 sendEvent(new SelectedWordChange(word.asLemma(sentence.tokens()),
                                 dictionaryEntry, sentenceView));
             } catch (IOException e) {
@@ -173,8 +175,43 @@ public class ReadModel implements EventSource<ModelEvent> {
         });
     }
 
+    public void search(String word) {
+        executorService.submit(() -> {
+            try {
+                List<DictionaryLookup2.SearchResult> results = dictionaryService.search(word);
+
+                sendEvent(new SearchResults(results));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    public void selectDictionaryWord(String entryId) {
+        executorService.submit(() -> {
+            try {
+                DictionaryEntry dictionaryEntry = dictionaryService.selectById(entryId);
+
+                sendEvent(new SelectedWordChange(dictionaryEntry.lemma(),
+                        dictionaryEntry, null));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
     public boolean isKnown(String lemma) {
-        return wordDB.isKnown(lemma) != WordState.UNKNOWN;
+        return db.isKnown(lemma) != WordState.UNKNOWN;
+    }
+
+    public WordState getWordState(String lemma) {
+        return db.isKnown(lemma);
+    }
+
+    public void addWord(CardEntry entry, WordState wordState) {
+        db.addWord(entry, wordState);
+
+        seekPage(currentPage);
     }
 
     private final List<Consumer<ModelEvent>> eventHandlers = new ArrayList<>();

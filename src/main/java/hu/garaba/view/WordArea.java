@@ -7,7 +7,6 @@ import hu.garaba.model2.ReadModel;
 import hu.garaba.model2.event.ModelEvent;
 import hu.garaba.model2.event.PageChange;
 import hu.garaba.model2.event.SelectionChange;
-import hu.garaba.model2.event.WordStateChange;
 import hu.garaba.textprocessor.Sentence;
 import hu.garaba.util.Pair;
 import javafx.application.Platform;
@@ -54,7 +53,7 @@ public class WordArea extends AnchorPane {
     private void onChange(ModelEvent change) {
         switch (change) {
             case PageChange(var n, var pageView) -> Platform.runLater(() -> onPageChange(pageView));
-            case WordStateChange(var changes) -> Platform.runLater(() -> onKnownChange(changes));
+//            case WordStateChange(var changes) -> Platform.runLater(() -> onKnownChange(changes));
             case SelectionChange(var oldTokens, var newTokens) -> {
                 Platform.runLater(() -> {
                     for (var old : oldTokens) {

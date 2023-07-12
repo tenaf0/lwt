@@ -6,7 +6,6 @@ import hu.garaba.model2.ReadModel;
 import hu.garaba.model2.event.PageBoundaryChange;
 import hu.garaba.model2.event.PageChange;
 import hu.garaba.model2.event.SelectionChange;
-import hu.garaba.model2.event.WordStateChange;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.IntegerProperty;
@@ -72,8 +71,6 @@ public class ReaderView {
                 Platform.runLater(() -> pageNo.setValue(n));
             } else if (e instanceof SelectionChange(var oldList, var newList)) {
                 wordArea.handleSelection(oldList, newList);
-            } else if (e instanceof WordStateChange(var changes)) {
-                wordArea.handleWordStateChange(changes);
             } else if (e instanceof PageBoundaryChange(var pagesBoundary)) {
                 Platform.runLater(() -> {
                     maxPages.setValue(pagesBoundary.n());

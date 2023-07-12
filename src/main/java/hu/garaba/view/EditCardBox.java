@@ -15,10 +15,10 @@ import java.util.regex.Pattern;
 
 public class EditCardBox {
 
-    private final ReadModel model;
+    private final ReadModel readModel;
 
-    public EditCardBox(ReadModel model) {
-        this.model = model;
+    public EditCardBox(ReadModel readModel) {
+        this.readModel = readModel;
     }
 
     @FXML
@@ -41,7 +41,7 @@ public class EditCardBox {
 
     @FXML
     public void initialize() {
-        model.subscribe(e -> {
+        readModel.subscribe(e -> {
             switch (e) {
                 case SelectedWordChange(String lemma, var dictionaryEntry, var sentenceView) -> {
                     reset();
@@ -54,6 +54,7 @@ public class EditCardBox {
                     if (dictionaryEntry == null || dictionaryEntry.grammar() == null)
                         return;
 
+                    wordField.setText(dictionaryEntry.lemma());
                     var grammatik = dictionaryEntry.grammar();
                     Pattern regex = Pattern.compile("(masculine|feminine|neuter) noun");
                     Matcher matcher = regex.matcher(grammatik);
@@ -81,7 +82,7 @@ public class EditCardBox {
         });
 
         wordField.textProperty().addListener((l, o, n) -> {
-            if (n == null || !model.isKnown(n)) {
+            if (n == null || !readModel.isKnown(n)) {
                 wordField.getStyleClass().remove("alreadyEntered");
             } else {
                 wordField.getStyleClass().add("alreadyEntered");
