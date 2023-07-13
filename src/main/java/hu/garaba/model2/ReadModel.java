@@ -10,6 +10,7 @@ import hu.garaba.model.CardEntry;
 import hu.garaba.model.TokenCoordinate;
 import hu.garaba.model2.event.*;
 import hu.garaba.textprocessor.Sentence;
+import hu.garaba.textprocessor.TextProcessor;
 import hu.garaba.textprocessor.Word;
 import hu.garaba.util.EventSource;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -60,28 +61,28 @@ public class ReadModel implements EventSource<ModelEvent> {
 
     public void open(String text) {
         LOGGER.log(System.Logger.Level.INFO, "Opening provided text input");
-        open(PageReader2.openText(text));
+        open(PageReader2.openText(text), 0);
     }
     public void open(Path filePath) {
         try {
             LOGGER.log(System.Logger.Level.INFO, "Opening " + filePath);
-            open(PageReader2.openFile(filePath));
+            open(PageReader2.openFile(filePath), 0);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private void open(PageReader2 pageReader) {
-        currentPage = 0;
+    private void open(PageReader2 pageReader, int pageNo) {
+        currentPage = pageNo;
         changeModelState(ReadModelState.UNLOADED);
 
         this.pageReader = pageReader;
         changeModelState(ReadModelState.LOADING);
 
         executorService.submit(() -> {
-            Page page = pageReader.getPage(0);
+            Page page = pageReader.getPage(pageNo);
             changeModelState(ReadModelState.LOADED);
-            setPage(0, page);
+            setPage(pageNo, page);
         });
     }
 
@@ -182,7 +183,7 @@ public class ReadModel implements EventSource<ModelEvent> {
 
                 sendEvent(new SearchResults(results));
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                LOGGER.log(System.Logger.Level.DEBUG, e);
             }
         });
     }
@@ -195,7 +196,7 @@ public class ReadModel implements EventSource<ModelEvent> {
                 sendEvent(new SelectedWordChange(dictionaryEntry.lemma(),
                         dictionaryEntry, null));
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                LOGGER.log(System.Logger.Level.DEBUG, e);
             }
         });
     }
@@ -212,6 +213,23 @@ public class ReadModel implements EventSource<ModelEvent> {
         db.addWord(entry, wordState);
 
         seekPage(currentPage);
+    }
+
+    public TextProcessor.@Nullable TextProcessorModel getCurrentModel() {
+        return pageReader == null ? null : pageReader.getModel();
+    }
+
+    public Set<TextProcessor.TextProcessorModel> getModels() {
+        return TextProcessor.getAvailableModels();
+    }
+
+    public void changeModel(TextProcessor.TextProcessorModel model) {
+        if (pageReader == null) {
+            return;
+        }
+
+        pageReader.changeModel(model);
+        open(NullnessUtil.castNonNull(pageReader), currentPage);
     }
 
     private final List<Consumer<ModelEvent>> eventHandlers = new ArrayList<>();

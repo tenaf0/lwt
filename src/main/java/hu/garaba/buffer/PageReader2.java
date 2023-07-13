@@ -31,6 +31,7 @@ public class PageReader2 {
 
     private final BufferReader bufferReader;
     private final Map<Integer, Page> pageMap = new ConcurrentHashMap<>();
+    private TextProcessor.TextProcessorModel model = TextProcessor.getAvailableModels().stream().findFirst().orElseThrow();
 
     private PageReader2(BufferReader bufferReader, PageNo pageNo) {
         this.bufferReader = bufferReader;
@@ -52,6 +53,7 @@ public class PageReader2 {
         return pageReader;
     }
 
+    private final List<Thread> workerThreads = new ArrayList<>();
     private void init() {
         List<Future<List<Page>>> futurePages = new ArrayList<>();
 
@@ -63,6 +65,7 @@ public class PageReader2 {
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException e) {
+                    LOGGER.log(System.Logger.Level.DEBUG, "Page adder got interrupted. Stopping.");
                     throw new RuntimeException(e);
                 }
 
@@ -104,7 +107,7 @@ public class PageReader2 {
                     final int finalI = i;
                     Future<List<Page>> pageNo = executorService.submit(() -> {
                         String text = bufferReader.getBuffer(finalI);
-                        Stream<Sentence> sentenceStream = TextProcessor.process(TextProcessor.TextProcessorModel.UDPIPE_1, text);
+                        Stream<Sentence> sentenceStream = TextProcessor.process(model, text);
                         return subdivideToPages(sentenceStream).toList();
                     });
                     futurePages.add(pageNo);
@@ -113,6 +116,24 @@ public class PageReader2 {
         }, "initThread");
         initThread.setDaemon(true);
         initThread.start();
+
+        workerThreads.add(pageAdder);
+        workerThreads.add(initThread);
+    }
+
+    public TextProcessor.TextProcessorModel getModel() {
+        return model;
+    }
+    public void changeModel(TextProcessor.TextProcessorModel model) {
+        if (this.model == model) {
+            return;
+        }
+
+        workerThreads.forEach(Thread::interrupt);
+        pageMap.clear();
+
+        this.model = model;
+        init();
     }
 
     public boolean isPageAvailable(int pageNo) {

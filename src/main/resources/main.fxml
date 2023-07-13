@@ -14,7 +14,7 @@
 
 <VBox fx:id="mainWindow" prefHeight="404.0" prefWidth="640.0" xmlns="http://javafx.com/javafx/19.0.2.1-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="hu.garaba.view2.MainWindow">
    <children>
-      <MenuBar useSystemMenuBar="true">
+      <MenuBar useSystemMenuBar="true" fx:id="menuBar">
          <menus>
             <Menu mnemonicParsing="false" text="File">
                <items>

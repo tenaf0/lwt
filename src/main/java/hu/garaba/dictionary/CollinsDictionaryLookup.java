@@ -9,7 +9,10 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -17,21 +20,18 @@ public class CollinsDictionaryLookup implements DictionaryLookup2 {
     public static final System.Logger LOGGER = System.getLogger(CollinsDictionaryLookup.class.getCanonicalName());
     private static final String COLLINS_API_KEY = System.getenv("COLLINS_API_KEY");
 
+    private final ExecutorService httpExecutorService = Executors.newVirtualThreadPerTaskExecutor();
+    private final HttpClient httpClient = HttpClient.newBuilder()
+            .executor(httpExecutorService)
+            .build();
+
     private record CollinsSearchResult(List<CollinsResultEntry> results) {}
     private record CollinsResultEntry(String entryLabel, String entryUrl, String entryId) {}
     public List<SearchResult> search(String word) throws IOException {
         LOGGER.log(System.Logger.Level.DEBUG, "Searching for \"" + word + "\"");
 
-        HttpClient httpClient = HttpClient.newHttpClient();
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create("https://api.collinsdictionary.com/api/v1" + "/dictionaries/german-english/search"
-                + "?q=" + word))
-                .GET()
-                .header("Accept", "application/json")
-                .header("accessKey", COLLINS_API_KEY)
-                .build();
-
         try {
+            HttpRequest request = buildRequest("/dictionaries/german-english/search?q=" + word);
             HttpResponse<String> resp = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
             CollinsSearchResult searchResult = JSON.parseObject(resp.body(), CollinsSearchResult.class);
@@ -46,16 +46,8 @@ public class CollinsDictionaryLookup implements DictionaryLookup2 {
     public DictionaryEntry lookup(String word) throws IOException {
         LOGGER.log(System.Logger.Level.DEBUG, "Looking up \"" + word + "\"");
 
-        HttpClient httpClient = HttpClient.newHttpClient();
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create("https://api.collinsdictionary.com/api/v1" + "/dictionaries/german-english/search/first/"
-                        + "?q=" + word + "&format=XML"))
-                .GET()
-                .header("Accept", "application/json")
-                .header("accessKey", COLLINS_API_KEY)
-                .build();
-
         try {
+            HttpRequest request = buildRequest("/dictionaries/german-english/search/first/?q=" + word + "&format=XML");
             HttpResponse<String> resp = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
             var result = JSON.parseObject(resp.body());
@@ -77,16 +69,8 @@ public class CollinsDictionaryLookup implements DictionaryLookup2 {
     public DictionaryEntry selectById(String entryId) throws IOException {
         LOGGER.log(System.Logger.Level.DEBUG, "Selecting dictionary entry by id \"" + entryId + "\"");
 
-        HttpClient httpClient = HttpClient.newHttpClient();
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create("https://api.collinsdictionary.com/api/v1/dictionaries/german-english/entries/"
-                        + entryId + "/?format=XML"))
-                .GET()
-                .header("Accept", "application/json")
-                .header("accessKey", COLLINS_API_KEY)
-                .build();
-
         try {
+            HttpRequest request = buildRequest("/dictionaries/german-english/entries/" + entryId + "/?format=XML");
             HttpResponse<String> resp = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
             var result = JSON.parseObject(resp.body());
@@ -102,6 +86,16 @@ public class CollinsDictionaryLookup implements DictionaryLookup2 {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private HttpRequest buildRequest(String urlPostfix) {
+        return HttpRequest.newBuilder()
+                .uri(URI.create("https://api.collinsdictionary.com/api/v1" + urlPostfix))
+                .GET()
+                .header("Accept", "application/json")
+                .header("accessKey", COLLINS_API_KEY)
+                .timeout(Duration.ofSeconds(30))
+                .build();
     }
 
     private URI createBrowserLinkToWord(String entryId) {

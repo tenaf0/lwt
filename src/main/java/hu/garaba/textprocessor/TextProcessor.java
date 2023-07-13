@@ -17,7 +17,10 @@ import java.net.URI;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Stream;
 
 public class TextProcessor {
@@ -109,8 +112,11 @@ public class TextProcessor {
         return conlluParse(processedText);
     }
 
+    private static final ExecutorService networkExecutor = Executors.newVirtualThreadPerTaskExecutor();
     public static Stream<Sentence> processUDPipe2(String sentences) {
-        Methanol client = Methanol.create();
+        Methanol client = Methanol.newBuilder()
+                .executor(networkExecutor)
+                .build();
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(PROCESS_URL))
                 .POST(MultipartBodyPublisher.newBuilder()
@@ -120,6 +126,7 @@ public class TextProcessor {
                         .formPart("tagger", HttpRequest.BodyPublishers.noBody())
                         .formPart("parser", HttpRequest.BodyPublishers.noBody())
                         .build())
+                .timeout(Duration.ofMinutes(2))
                 .build();
 
         try {
