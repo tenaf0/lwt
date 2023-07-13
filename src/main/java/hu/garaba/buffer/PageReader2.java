@@ -66,7 +66,7 @@ public class PageReader2 {
                     Thread.sleep(1000);
                 } catch (InterruptedException e) {
                     LOGGER.log(System.Logger.Level.DEBUG, "Page adder got interrupted. Stopping.");
-                    throw new RuntimeException(e);
+                    return;
                 }
 
                 int i = finishedTill;
