@@ -31,7 +31,9 @@ public class PageReader2 {
 
     private final BufferReader bufferReader;
     private final Map<Integer, Page> pageMap = new ConcurrentHashMap<>();
-    private TextProcessor.TextProcessorModel model = TextProcessor.getAvailableModels().stream().findFirst().orElseThrow();
+    private TextProcessor.TextProcessorModel model = TextProcessor.getAvailableModels().stream()
+            .sorted(Comparator.comparing(e -> e.displayName))
+            .findFirst().orElseThrow();
 
     private PageReader2(BufferReader bufferReader, PageNo pageNo) {
         this.bufferReader = bufferReader;
@@ -134,6 +136,10 @@ public class PageReader2 {
 
         this.model = model;
         init();
+    }
+
+    public void stop() {
+        workerThreads.forEach(Thread::interrupt);
     }
 
     public boolean isPageAvailable(int pageNo) {

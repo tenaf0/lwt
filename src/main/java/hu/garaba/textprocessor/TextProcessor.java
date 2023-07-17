@@ -112,11 +112,15 @@ public class TextProcessor {
         return conlluParse(processedText);
     }
 
-    private static final ExecutorService networkExecutor = Executors.newVirtualThreadPerTaskExecutor();
+    private static final ExecutorService networkExecutor = Executors.newCachedThreadPool(r -> {
+        Thread t = Executors.defaultThreadFactory().newThread(r);
+        t.setDaemon(true);
+        return t;
+    });
+    private static final Methanol client = Methanol.newBuilder()
+            .executor(networkExecutor)
+            .build();
     public static Stream<Sentence> processUDPipe2(String sentences) {
-        Methanol client = Methanol.newBuilder()
-                .executor(networkExecutor)
-                .build();
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(PROCESS_URL))
                 .POST(MultipartBodyPublisher.newBuilder()
@@ -181,5 +185,9 @@ public class TextProcessor {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static void stop() {
+        networkExecutor.shutdownNow();
     }
 }

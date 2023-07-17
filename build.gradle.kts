@@ -25,7 +25,7 @@ dependencies {
 
     implementation("org.xerial:sqlite-jdbc:3.42.0.0")
     implementation("org.jsoup:jsoup:1.16.1")
-    implementation("com.alibaba:fastjson:2.0.34")
+    implementation("com.alibaba:fastjson:2.0.35")
     implementation("com.github.mizosoft.methanol:methanol:1.7.0")
     implementation("com.opencsv:opencsv:5.7.1")
 

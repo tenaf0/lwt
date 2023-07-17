@@ -81,6 +81,6 @@ public class Main extends Application {
 
     @Override
     public void stop() {
-//        model.close();
+        readModel.close();
     }
 }

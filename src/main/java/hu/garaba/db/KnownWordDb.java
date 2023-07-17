@@ -65,7 +65,7 @@ public class KnownWordDb implements Closeable {
     }
 
     private boolean ignoredWords(String lemma) {
-        List<String> ignoredSymbols = List.of(",", ".", "?", "!", ";", ":");
+        List<String> ignoredSymbols = List.of(",", ".", "?", "!", ";", ":", "[", "]");
         Pattern number = Pattern.compile("\\d+");
 
         return ignoredSymbols.contains(lemma) || number.matcher(lemma).matches();

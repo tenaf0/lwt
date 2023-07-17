@@ -6,6 +6,7 @@ import hu.garaba.db.KnownWordDb;
 import hu.garaba.db.WordState;
 import hu.garaba.dictionary.DictionaryEntry;
 import hu.garaba.dictionary.DictionaryLookup2;
+import hu.garaba.export.AnkiExport;
 import hu.garaba.model.CardEntry;
 import hu.garaba.model.TokenCoordinate;
 import hu.garaba.model2.event.*;
@@ -13,6 +14,8 @@ import hu.garaba.textprocessor.Sentence;
 import hu.garaba.textprocessor.TextProcessor;
 import hu.garaba.textprocessor.Word;
 import hu.garaba.util.EventSource;
+import javafx.application.Platform;
+import javafx.scene.control.Alert;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.util.NullnessUtil;
 import org.jetbrains.annotations.Nullable;
@@ -230,6 +233,29 @@ public class ReadModel implements EventSource<ModelEvent> {
 
         pageReader.changeModel(model);
         open(NullnessUtil.castNonNull(pageReader), currentPage);
+    }
+
+    public void exportRows(Path path) {
+        executorService.submit(() -> {
+            try {
+                AnkiExport.export(db.fetchLearningWords(), path);
+                Platform.runLater(() -> { // TODO: Replace by event
+                    new Alert(Alert.AlertType.INFORMATION, "Export finished successfully!").showAndWait();
+                });
+            } catch (IOException e) {
+                Platform.runLater(() -> {
+                    new Alert(Alert.AlertType.ERROR, "Unexpected error happened during export: " + e.getMessage()).showAndWait();
+                });
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    public void close() {
+        if (pageReader != null) {
+            pageReader.stop();
+        }
+        TextProcessor.stop();
     }
 
     private final List<Consumer<ModelEvent>> eventHandlers = new ArrayList<>();

@@ -134,7 +134,7 @@ public class MainWindow {
 
     @FXML
     public void onExport() {
-
+        readModel.exportRows(exportPathSupplier.get());
     }
 
     @FXML
