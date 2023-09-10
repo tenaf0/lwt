@@ -16,7 +16,7 @@ import java.util.stream.StreamSupport;
 public class PageReader2 {
     public static final System.Logger LOGGER = System.getLogger(PageReader2.class.getCanonicalName());
 
-    public final int PAGE_SIZE = 10;
+    public final int PAGE_SIZE = 12; // the number of sentences on a page
 
     public sealed interface PageNo permits PageNo.ExactPageNo, PageNo.ApproxPageNo {
         int n();

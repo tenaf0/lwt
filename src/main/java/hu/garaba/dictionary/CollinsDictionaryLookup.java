@@ -1,6 +1,7 @@
 package hu.garaba.dictionary;
 
 import com.alibaba.fastjson2.JSON;
+import org.jetbrains.annotations.Nullable;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
@@ -42,6 +43,22 @@ public class CollinsDictionaryLookup implements DictionaryLookup2 {
         }
     }
 
+    private final Pattern genderPattern = Pattern.compile("(masculine|feminine|neuter) noun");
+    @Nullable
+    private String determinePrefix(String grammarBlock) {
+        String prefix = null;
+        Matcher matcher = genderPattern.matcher(grammarBlock);
+        if (matcher.matches()) {
+            prefix = switch (matcher.group(1)) {
+                case "masculine" -> "der";
+                case "feminine" -> "die";
+                case "neuter" -> "das";
+                default -> throw new IllegalArgumentException();
+            };
+        }
+        return prefix;
+    }
+
     @Override
     public DictionaryEntry lookup(String word) throws IOException {
         LOGGER.log(System.Logger.Level.DEBUG, "Looking up \"" + word + "\"");
@@ -55,8 +72,7 @@ public class CollinsDictionaryLookup implements DictionaryLookup2 {
             String grammarBlock = doc.selectFirst(".gramGrp").text();
             String text = doc.selectFirst(".sense").text();
 
-
-            return new DictionaryEntry(cutPostfixNumber(result.getString("entryLabel")),
+            return new DictionaryEntry(new LemmaDisplay(determinePrefix(grammarBlock), cutPostfixNumber(result.getString("entryLabel")), null),
                     createBrowserLinkToWord(result.getString("entryId")),
                     grammarBlock,
                     text);
@@ -78,8 +94,7 @@ public class CollinsDictionaryLookup implements DictionaryLookup2 {
             String grammarBlock = doc.selectFirst(".gramGrp").text();
             String text = doc.selectFirst(".sense").text();
 
-
-            return new DictionaryEntry(cutPostfixNumber(result.getString("entryLabel")),
+            return new DictionaryEntry(new LemmaDisplay(determinePrefix(grammarBlock), cutPostfixNumber(result.getString("entryLabel")), null),
                     createBrowserLinkToWord(result.getString("entryId")),
                     grammarBlock,
                     text);

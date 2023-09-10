@@ -64,8 +64,14 @@ public class WordArea extends ScrollPane {
 
     public void handleSelection(Set<TokenCoordinate> oldSelection, Set<TokenCoordinate> newSelection) {
         Platform.runLater(() -> {
-            oldSelection.stream().map(tc -> tokenMap.get(tc)).forEach(n -> setTokenSelection(n, false));
-            newSelection.stream().map(tc -> tokenMap.get(tc)).forEach(n -> setTokenSelection(n, true));
+            oldSelection.stream()
+                    .map(tc -> tokenMap.get(tc))
+                    .filter(Objects::nonNull)
+                    .forEach(n -> setTokenSelection(n, false));
+
+            newSelection.stream()
+                    .map(tc -> tokenMap.get(tc))
+                    .forEach(n -> setTokenSelection(n, true));
         });
 
     }

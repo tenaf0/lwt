@@ -5,6 +5,7 @@ import hu.garaba.db.KnownWordDb
 import hu.garaba.db.WordState
 import hu.garaba.dictionary.DictionaryEntry
 import hu.garaba.dictionary.DictionaryLookup2
+import hu.garaba.dictionary.LemmaDisplay
 import hu.garaba.model.TokenCoordinate
 import hu.garaba.model2.event.*
 import org.mockito.ArgumentMatcher
@@ -28,8 +29,8 @@ class ReadModelTest extends Specification {
     def setup() {
         db.isKnown(_) >> WordState.IGNORED
 //        dictionaryLookupService.search(_) >> WordState.IGNORED
-        dictionaryLookupService.lookup(_) >> { String word -> new DictionaryEntry(word, null, null, null) }
-        dictionaryLookupService.selectById(_) >> { String word -> new DictionaryEntry(word, null, null, null) }
+        dictionaryLookupService.lookup(_) >> { String word -> new DictionaryEntry(new LemmaDisplay(word), null, null, null) }
+        dictionaryLookupService.selectById(_) >> { String word -> new DictionaryEntry(new LemmaDisplay(word), null, null, null) }
     }
 
     def "model state should change from UNLOADED to LOADING and finally LOADED upon opening some text"() {

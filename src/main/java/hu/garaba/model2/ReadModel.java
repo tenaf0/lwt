@@ -196,7 +196,7 @@ public class ReadModel implements EventSource<ModelEvent> {
             try {
                 DictionaryEntry dictionaryEntry = dictionaryService.selectById(entryId);
 
-                sendEvent(new SelectedWordChange(dictionaryEntry.lemma(),
+                sendEvent(new SelectedWordChange(dictionaryEntry.lemma().lemma(),
                         dictionaryEntry, null));
             } catch (IOException e) {
                 LOGGER.log(System.Logger.Level.DEBUG, e);

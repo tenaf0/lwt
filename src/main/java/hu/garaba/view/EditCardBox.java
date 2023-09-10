@@ -54,18 +54,8 @@ public class EditCardBox {
                     if (dictionaryEntry == null || dictionaryEntry.grammar() == null)
                         return;
 
-                    wordField.setText(dictionaryEntry.lemma());
-                    var grammatik = dictionaryEntry.grammar();
-                    Pattern regex = Pattern.compile("(masculine|feminine|neuter) noun");
-                    Matcher matcher = regex.matcher(grammatik);
-                    if (matcher.matches()) {
-                        prefixField.setText(switch (matcher.group(1)) {
-                            case "masculine" -> "der";
-                            case "feminine" -> "die";
-                            case "neuter" -> "das";
-                            default -> throw new IllegalArgumentException();
-                        });
-                    }
+                    prefixField.setText(dictionaryEntry.lemma().prefix());
+                    wordField.setText(dictionaryEntry.lemma().lemma());
                 }
                 default -> {}
             }

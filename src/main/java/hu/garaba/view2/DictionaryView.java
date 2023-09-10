@@ -130,7 +130,7 @@ public class DictionaryView {
                 grammarLabel.setText(null);
                 bodyText.setText(null);
             } else {
-                wordLabel.setText(entry.lemma());
+                wordLabel.setText(entry.lemma().toString()); // TODO: Can use different formatting for prefix vs lemma
                 dictionaryLink.setOnAction(e -> hostServices.showDocument(entry.uri().toString()));
                 grammarLabel.setText(entry.grammar());
                 bodyText.setText(entry.text());

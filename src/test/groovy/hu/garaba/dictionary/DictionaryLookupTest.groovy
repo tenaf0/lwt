@@ -22,7 +22,7 @@ class DictionaryLookupTest extends Specification {
         def result = dictionaryLookup.lookup("Gesetz")
 
         then:
-        result.lemma() == "Gesetz"
+        result.lemma() == new LemmaDisplay("das", "Gesetz", null)
         result.grammar() == "neuter noun"
     }
 }
