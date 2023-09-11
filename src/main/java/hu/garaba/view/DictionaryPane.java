@@ -1,13 +1,10 @@
 package hu.garaba.view;
 
-import hu.garaba.model.CardEntry;
 import hu.garaba.dictionary.DictionaryLookup;
-import hu.garaba.model.Model;
-import hu.garaba.model.SelectedWord;
-import hu.garaba.model.event.SelectedWordChange;
-import hu.garaba.model.util.Debouncer;
+import hu.garaba.model.CardEntry;
+import hu.garaba.util.Debouncer;
+import hu.garaba.model2.ReadModel;
 import javafx.application.HostServices;
-import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.fxml.FXML;
@@ -15,19 +12,19 @@ import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.text.Text;
+import javafx.scene.layout.VBox;
 import javafx.scene.text.TextFlow;
 
 public class DictionaryPane extends AnchorPane {
-    private final Model model;
+    private final ReadModel model;
     private final HostServices hostServices;
 
-    public DictionaryPane(Model model, HostServices hostServices) {
+    public DictionaryPane(ReadModel model, HostServices hostServices) {
         this.model = model;
         this.hostServices = hostServices;
 
         model.subscribe(e -> {
-            switch (e) {
+           /* switch (e) {
                 case SelectedWordChange(SelectedWord selectedWord)  -> {
                     word.set(selectedWord.lemma());
 
@@ -44,7 +41,7 @@ public class DictionaryPane extends AnchorPane {
                     }
                 }
                 default -> {}
-            }
+            }*/
         });
     }
 
@@ -70,6 +67,9 @@ public class DictionaryPane extends AnchorPane {
     private TextFlow dictionaryText;
 
     @FXML
+    private VBox sentenceView;
+
+    @FXML
     private EditCardBox editCardBoxController;
 
     private final Debouncer debouncer = new Debouncer();
@@ -82,31 +82,32 @@ public class DictionaryPane extends AnchorPane {
         dictionaryLinkCollins.setOnAction(e -> hostServices.showDocument(DictionaryLookup.lookupURL(word.get(), DictionaryLookup.Dictionary.Collins)));
         grammarCategoryLabel.textProperty().bind(grammarCategory);
 
+//        sentenceView.getChildren().add(0, new WordArea());
     }
 
     @FXML
     public void onSearch() {
-        debouncer.debounce(() -> Platform.runLater(() -> model.selectWord(searchField.getText(), null)), 500);
+//        debouncer.debounce(() -> Platform.runLater(() -> model.selectWord(searchField.getText(), null)), 500);
     }
 
     @FXML
     public void ignoreAction() {
         CardEntry cardEntry = editCardBoxController.collectCardEntryInfos().wordOnly();
         System.out.println(cardEntry);
-        model.addWord(cardEntry, Model.WordState.IGNORED);
+//        model.addWord(cardEntry, Model.WordState.IGNORED);
     }
 
     @FXML
     public void learningAction() {
         CardEntry cardEntry = editCardBoxController.collectCardEntryInfos();
         System.out.println(cardEntry);
-        model.addWord(cardEntry, Model.WordState.LEARNING);
+//        model.addWord(cardEntry, Model.WordState.LEARNING);
     }
 
     @FXML
     public void knownAction() {
         CardEntry cardEntry = editCardBoxController.collectCardEntryInfos().wordOnly();
         System.out.println(cardEntry);
-        model.addWord(cardEntry, Model.WordState.KNOWN);
+//        model.addWord(cardEntry, Model.WordState.KNOWN);
     }
 }

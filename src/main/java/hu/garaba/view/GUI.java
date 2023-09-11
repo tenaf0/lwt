@@ -1,7 +1,7 @@
 package hu.garaba.view;
 
-import hu.garaba.model.Model;
-import hu.garaba.model.event.StateChange;
+import hu.garaba.model2.ReadModel;
+import hu.garaba.model2.event.StateChange;
 import hu.garaba.textprocessor.TextProcessor;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -9,21 +9,19 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.util.StringConverter;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Optional;
 import java.util.function.Supplier;
 
 public class GUI extends Pane {
 
-    private final Model model;
-    private Model.ModelState modelState = Model.ModelState.EMPTY;
+    private final ReadModel model;
     private final WordArea wordArea;
 
     private final Supplier<Path> openPathSupplier;
     private final Supplier<Path> exportPathSupplier;
 
-    public GUI(Model model, Supplier<Path> openPathSupplier, Supplier<Path> exportPathSupplier) {
+    public GUI(ReadModel model, Supplier<Path> openPathSupplier, Supplier<Path> exportPathSupplier) {
         this.model = model;
         this.wordArea = new WordArea(model);
 
@@ -32,22 +30,14 @@ public class GUI extends Pane {
 
         model.subscribe(e -> {
             if (e instanceof StateChange(var newState)) {
-                Model.ModelState prevState = modelState;
-                modelState = newState;
-
-                if (prevState == newState) {
-                    return;
-                }
-
-//                leftContainer.getChildren().clear();
-                if (newState == Model.ModelState.EMPTY) {
+                if (newState == ReadModel.ReadModelState.UNLOADED) {
                     stateDescription.setVisible(true);
                     wordArea.setVisible(false);
                     stateDescription.setText("No document is loaded");
-                } else if (newState == Model.ModelState.LOADED) {
+                } else if (newState == ReadModel.ReadModelState.LOADED) {
                     stateDescription.setVisible(false);
                     wordArea.setVisible(true);
-                } else if (newState == Model.ModelState.LOADING) {
+                } else if (newState == ReadModel.ReadModelState.LOADING) {
                     stateDescription.setVisible(true);
                     wordArea.setVisible(false);
                     stateDescription.setText("Loading...");
@@ -61,7 +51,7 @@ public class GUI extends Pane {
         wordArea.setVisible(false);
         leftContainer.getChildren().add(wordArea);
 
-        modelChoice.setOnAction(e -> model.setModel(modelChoice.getValue()));
+//        modelChoice.setOnAction(e -> model.setModel(modelChoice.getValue()));
         modelChoice.setConverter(new StringConverter<>() {
             @Override
             public String toString(TextProcessor.TextProcessorModel model) {
@@ -73,10 +63,10 @@ public class GUI extends Pane {
                 return TextProcessor.TextProcessorModel.findByName(name);
             }
         });
-        for (var model : model.getAvailableModels()) {
+        /*for (var model : model.getAvailableModels()) {
             modelChoice.getItems().add(model);
         }
-        modelChoice.setValue(model.getModel());
+        modelChoice.setValue(model.getModel());*/
 
         AnchorPane.setTopAnchor(wordArea, 0.0);
         AnchorPane.setLeftAnchor(wordArea, 0.0);
@@ -95,7 +85,7 @@ public class GUI extends Pane {
 
     @FXML
     public void onOpenFile() {
-        model.openText(openPathSupplier.get());
+        model.open(openPathSupplier.get());
     }
 
     @FXML
@@ -121,22 +111,22 @@ public class GUI extends Pane {
 
         Optional<String> res = dialog.showAndWait();
         if (res.isPresent()) {
-            model.openText(res.get());
+            model.open(res.get());
         }
     }
 
     @FXML
     public void nextPage() {
-        model.changePage(true);
+        model.nextPage();
     }
 
     @FXML
     public void prevPage() {
-        model.changePage(false);
+        model.prevPage();
     }
 
     @FXML
     public void onExport() {
-        model.exportRows(exportPathSupplier.get());
+//        model.exportRows(exportPathSupplier.get());
     }
 }

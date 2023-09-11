@@ -1,9 +1,8 @@
 package hu.garaba.view;
 
 import hu.garaba.model.CardEntry;
-import hu.garaba.model.Model;
-import hu.garaba.model.SelectedWord;
-import hu.garaba.model.event.SelectedWordChange;
+import hu.garaba.model2.ReadModel;
+import hu.garaba.model2.event.SelectedWordChange;
 import javafx.fxml.FXML;
 import javafx.scene.control.IndexRange;
 import javafx.scene.control.TextArea;
@@ -11,16 +10,15 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class EditCardBox {
 
-    private final Model model;
+    private final ReadModel readModel;
 
-    public EditCardBox(Model model) {
-        this.model = model;
+    public EditCardBox(ReadModel readModel) {
+        this.readModel = readModel;
     }
 
     @FXML
@@ -43,30 +41,21 @@ public class EditCardBox {
 
     @FXML
     public void initialize() {
-        model.subscribe(e -> {
+        readModel.subscribe(e -> {
             switch (e) {
-                case SelectedWordChange(SelectedWord selectedWord) -> {
+                case SelectedWordChange(String lemma, var dictionaryEntry, var sentenceView) -> {
                     reset();
 
-                    wordField.setText(selectedWord.lemma());
-                    if (selectedWord.sentence() != null) {
-                        exampleSentenceField.setText(selectedWord.sentence().toText());
+                    wordField.setText(lemma);
+                    if (sentenceView.sentence() != null) {
+                        exampleSentenceField.setText(sentenceView.sentence().toText());
                     }
 
-                    if (selectedWord.dictionaryEntry() == null || selectedWord.dictionaryEntry().grammatik() == null)
+                    if (dictionaryEntry == null || dictionaryEntry.grammar() == null)
                         return;
 
-                    var grammatik = selectedWord.dictionaryEntry().grammatik();
-                    Pattern regex = Pattern.compile("(masculine|feminine|neuter) noun");
-                    Matcher matcher = regex.matcher(grammatik);
-                    if (matcher.matches()) {
-                        prefixField.setText(switch (matcher.group(1)) {
-                            case "masculine" -> "der";
-                            case "feminine" -> "die";
-                            case "neuter" -> "das";
-                            default -> throw new IllegalArgumentException();
-                        });
-                    }
+                    prefixField.setText(dictionaryEntry.lemma().prefix());
+                    wordField.setText(dictionaryEntry.lemma().lemma());
                 }
                 default -> {}
             }
@@ -83,7 +72,7 @@ public class EditCardBox {
         });
 
         wordField.textProperty().addListener((l, o, n) -> {
-            if (Objects.requireNonNull(model.isKnown(n)) == Model.WordState.UNKNOWN) {
+            if (n == null || !readModel.isKnown(n)) {
                 wordField.getStyleClass().remove("alreadyEntered");
             } else {
                 wordField.getStyleClass().add("alreadyEntered");

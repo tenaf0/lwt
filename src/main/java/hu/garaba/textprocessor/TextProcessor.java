@@ -5,9 +5,6 @@ import com.github.mizosoft.methanol.Methanol;
 import com.github.mizosoft.methanol.MultipartBodyPublisher;
 import cz.cuni.mff.ufal.udpipe.Model;
 import cz.cuni.mff.ufal.udpipe.Pipeline;
-import hu.garaba.buffer.Sentence;
-import hu.garaba.model.TokenLemma;
-import hu.garaba.model.Word;
 import opennlp.tools.formats.conllu.ConlluSentence;
 import opennlp.tools.formats.conllu.ConlluStream;
 import opennlp.tools.sentdetect.SentenceDetectorME;
@@ -20,8 +17,10 @@ import java.net.URI;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.*;
-import java.util.stream.Collectors;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Stream;
 
 public class TextProcessor {
@@ -113,8 +112,15 @@ public class TextProcessor {
         return conlluParse(processedText);
     }
 
+    private static final ExecutorService networkExecutor = Executors.newCachedThreadPool(r -> {
+        Thread t = Executors.defaultThreadFactory().newThread(r);
+        t.setDaemon(true);
+        return t;
+    });
+    private static final Methanol client = Methanol.newBuilder()
+            .executor(networkExecutor)
+            .build();
     public static Stream<Sentence> processUDPipe2(String sentences) {
-        Methanol client = Methanol.create();
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(PROCESS_URL))
                 .POST(MultipartBodyPublisher.newBuilder()
@@ -124,6 +130,7 @@ public class TextProcessor {
                         .formPart("tagger", HttpRequest.BodyPublishers.noBody())
                         .formPart("parser", HttpRequest.BodyPublishers.noBody())
                         .build())
+                .timeout(Duration.ofMinutes(2))
                 .build();
 
         try {
@@ -178,5 +185,9 @@ public class TextProcessor {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static void stop() {
+        networkExecutor.shutdownNow();
     }
 }

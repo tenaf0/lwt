@@ -1,7 +1,4 @@
-package hu.garaba.buffer;
-
-import hu.garaba.model.TokenLemma;
-import hu.garaba.model.Word;
+package hu.garaba.textprocessor;
 
 import java.util.List;
 import java.util.stream.Collectors;

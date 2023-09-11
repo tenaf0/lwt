@@ -1,10 +1,15 @@
 package hu.garaba.view;
 
-import hu.garaba.model.Model;
+import hu.garaba.db.WordState;
 import hu.garaba.model.TokenCoordinate;
-import hu.garaba.model.event.*;
-import hu.garaba.buffer.Page;
-import hu.garaba.buffer.Sentence;
+import hu.garaba.model2.PageView;
+import hu.garaba.model2.ReadModel;
+import hu.garaba.model2.event.ModelEvent;
+import hu.garaba.model2.event.PageChange;
+import hu.garaba.model2.event.SelectionChange;
+import hu.garaba.textprocessor.Sentence;
+import hu.garaba.util.Pair;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.AnchorPane;
@@ -15,12 +20,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class WordArea extends AnchorPane {
-    private final Model model;
+    private final ReadModel model;
     private final TextFlow textFlow;
 
     private final List<List<WordNode>> labels = new ArrayList<>();
 
-    public WordArea(Model model) {
+    public WordArea(ReadModel model) {
         this.model = model;
         model.subscribe(this::onChange);
 
@@ -47,22 +52,28 @@ public class WordArea extends AnchorPane {
 
     private void onChange(ModelEvent change) {
         switch (change) {
-            case PageChange(var page) -> onPageChange(page);
-            case SelectedWordChange dc -> {}
-            case KnownChange k -> onKnownChange();
-            case TokenChange(var tokenList) -> {
-                labels.forEach(s -> s.forEach(WordNode::deselect));
-                tokenList.forEach(s -> labels.get(s.sentenceNo()).get(s.tokenNo()).select());
+            case PageChange(var n, var pageView) -> Platform.runLater(() -> onPageChange(pageView));
+//            case WordStateChange(var changes) -> Platform.runLater(() -> onKnownChange(changes));
+            case SelectionChange(var oldTokens, var newTokens) -> {
+                Platform.runLater(() -> {
+                    for (var old : oldTokens) {
+                        labels.get(old.sentenceNo()).get(old.tokenNo()).deselect();
+                    }
+                    for (var n : newTokens) {
+                        labels.get(n.sentenceNo()).get(n.tokenNo()).select();
+                    }
+                });
             }
-            case StateChange stateChange -> {}
+            default -> {}
         }
     }
 
-    private void onPageChange(Page page) {
-        List<Sentence> sentences = page.sentences();
+    private void onPageChange(PageView pageView) {
+        List<Sentence> sentences = pageView.page().sentences();
 
         this.textFlow.getChildren().clear();
         labels.clear();
+        int tokenNo = 0;
         for (int s = 0; s < sentences.size(); s++) {
             List<WordNode> sentence = new ArrayList<>();
             labels.add(sentence);
@@ -73,6 +84,7 @@ public class WordArea extends AnchorPane {
                 var token = sentences.get(s).tokens().get(i);
 
                 WordNode label = new WordNode(token);
+                label.setState(pageView.wordStates().get(tokenNo));
                 int finalS = s;
                 int finalI = i;
                 label.setOnMouseClicked(e -> {
@@ -84,18 +96,16 @@ public class WordArea extends AnchorPane {
                 });
                 this.textFlow.getChildren().add(label);
                 sentence.add(label);
+
+                tokenNo++;
             }
         }
-
-        onKnownChange();
     }
 
-    private void onKnownChange() {
-        for (int s = 0; s < labels.size(); s++) {
-            for (int i = 0; i < labels.get(s).size(); i++) {
-                var label = labels.get(s).get(i);
-                label.setState(model.isKnown(new TokenCoordinate(s, i)));
-            }
+    private void onKnownChange(List<Pair<TokenCoordinate, WordState>> changes) {
+        for (var c : changes) {
+            WordNode label = labels.get(c.fst().sentenceNo()).get(c.fst().tokenNo());
+            label.setState(c.snd());
         }
     }
 }

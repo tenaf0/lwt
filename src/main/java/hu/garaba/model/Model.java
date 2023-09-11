@@ -2,11 +2,15 @@ package hu.garaba.model;
 
 import hu.garaba.buffer.Page;
 import hu.garaba.buffer.PageReader;
-import hu.garaba.buffer.Sentence;
+import hu.garaba.db.KnownWordDb;
+import hu.garaba.db.WordState;
+import hu.garaba.textprocessor.Sentence;
 import hu.garaba.dictionary.DictionaryLookup;
 import hu.garaba.export.AnkiExport;
 import hu.garaba.model.event.*;
 import hu.garaba.textprocessor.TextProcessor;
+import hu.garaba.textprocessor.TokenLemma;
+import hu.garaba.textprocessor.Word;
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import org.jetbrains.annotations.Nullable;
@@ -60,7 +64,7 @@ public class Model {
         this.model = model;
 
         if (pageReader != null) {
-            pageReader.changeModel(model);
+            pageReader.changeModel(model, currentPage);
 
             pageReader.submit(() -> {
                 Page page = pageReader.getPage(currentPage);
@@ -143,9 +147,6 @@ public class Model {
         }
     }
 
-    public enum WordState {
-        KNOWN, LEARNING, UNKNOWN, IGNORED
-    }
     public WordState isKnown(TokenCoordinate coord) {
         Sentence sentence = page.sentences().get(coord.sentenceNo());
         Word word = sentence.findRelated(coord.tokenNo());
@@ -166,7 +167,7 @@ public class Model {
     }
 
 
-    public void addWord(CardEntry cardEntry, Model.WordState state) {
+    public void addWord(CardEntry cardEntry, WordState state) {
         knownWordDb.addWord(cardEntry, state);
         sendEvent(new KnownChange());
     }

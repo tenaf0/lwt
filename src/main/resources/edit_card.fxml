@@ -8,7 +8,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox stylesheets="@style/edit-card-box.css" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="hu.garaba.view.EditCardBox">
+<VBox stylesheets="@style/edit-card-box.css" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="hu.garaba.view.EditCardBox" minHeight="150">
    <children>
       <GridPane VBox.vgrow="ALWAYS">
          <columnConstraints>
