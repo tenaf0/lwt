@@ -13,6 +13,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 import java.util.regex.Pattern;
 
 public class KnownWordDb implements Closeable {
@@ -23,7 +25,8 @@ public class KnownWordDb implements Closeable {
 
     public KnownWordDb(String path) throws SQLException {
         boolean needInit = !Files.exists(Path.of(path));
-        connection = DriverManager.getConnection("jdbc:sqlite:" + path);
+        Connection conn = DriverManager.getConnection("jdbc:sqlite:" + path);
+        this.connection = conn;
 
         if (needInit) {
             initDB();
@@ -32,7 +35,7 @@ public class KnownWordDb implements Closeable {
         cleanable = cleaner.register(this, () -> {
             try {
                 System.out.println("Closing db");
-                connection.close();
+                conn.close();
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
@@ -65,21 +68,26 @@ public class KnownWordDb implements Closeable {
     }
 
     private boolean ignoredWords(String lemma) {
-        List<String> ignoredSymbols = List.of(",", ".", "?", "!", ";", ":", "[", "]");
+        Set<String> ignoredSymbols = Set.of(",", ".", "?", "!", ";", ":", "[", "]", "-");
+        Set<String> easyWords = Set.of("der", "die", "das", "des", "dem",
+                "an", "am", "aus", "auf", "um", "als", "und", "mit", "von",
+                "ich", "du", "er", "sie", "es", "wir", "ihr",
+                "ein");
         Pattern number = Pattern.compile("\\d+");
 
-        return ignoredSymbols.contains(lemma) || number.matcher(lemma).matches();
+        return ignoredSymbols.contains(lemma) || easyWords.contains(lemma) || number.matcher(lemma).matches();
     }
 
     public void addWord(CardEntry row, WordState state) {
-        try (var st = connection.prepareStatement("INSERT INTO word (prefix, word, postfix, meaning, note, example_sentence, status, datetime) VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)")) {
-            st.setString(1, row.prefix());
-            st.setString(2, row.word());
-            st.setString(3, row.postfix());
-            st.setString(4, row.meaning());
-            st.setString(5, row.note());
-            st.setString(6, row.exampleSentence());
-            st.setString(7, state.toString());
+        try (var st = connection.prepareStatement("INSERT INTO word (id, prefix, word, postfix, meaning, note, example_sentence, status, datetime) VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)")) {
+            st.setString(1, UUID.randomUUID().toString());
+            st.setString(2, row.prefix());
+            st.setString(3, row.word());
+            st.setString(4, row.postfix());
+            st.setString(5, row.meaning());
+            st.setString(6, row.note());
+            st.setString(7, row.exampleSentence());
+            st.setString(8, state.toString());
             st.execute();
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -93,7 +101,7 @@ public class KnownWordDb implements Closeable {
             List<CardEntry> result = new ArrayList<>();
             while (rs.next()) {
                 result.add(new CardEntry(
-                        rs.getLong(1),
+                        rs.getString(1),
                         rs.getString(2),
                         rs.getString(3),
                         rs.getString(4),
@@ -113,9 +121,9 @@ public class KnownWordDb implements Closeable {
         try (var st = connection.createStatement()) {
             st.execute("""
                     create table word (
-                                  id               integer not null
+                                  id               TEXT not null
                                       constraint word_pk
-                                          primary key autoincrement,
+                                          primary key,
                                   prefix           TEXT,
                                   word             TEXT    not null,
                                   postfix          TEXT,
